@@ -1,0 +1,19 @@
+obj1.grabStart: isBeingGrabbed(true), isDragging(true), wasBeingGrabbed(true) => transition(false)
+obj1.grabEnd: isBeingGrabbed(false), isDragging(true), wasBeingGrabbed(true) => transition(true)
+obj1.grabEnd after 250ms: isBeingGrabbed(false), isDragging(false), wasBeingGrabbed(true) => transition(true) | transition(false)
+obj2.grabStart: isBeingGrabbed(false), isDragging(true), wasBeingGrabbed(false) => transition(false)
+obj2.grabEnd: isBeingGrabbed(false), isDragging(true), wasBeingGrabbed(false) => transition(false)
+obj2.grabEnd after 250ms: isBeingGrabbed(false), isDragging(false), wasBeingGrabbed(false) => transition(true) | transition(false)
+
+true true true => false
+false true true => true
+false true false => false
+false true false => false
+
+if (wasBeingGrabbed && !isBeingGrabbed) {
+  transition = true
+} else {
+  transition = false
+}
+
+// transition: box-shadow 0.25s ease, ${ props => (props.wasBeingGrabbed && !props.isGrabbing) ? 'transform 0.25s ease' : 'transform 0s' };

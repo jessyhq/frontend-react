@@ -1,17 +1,76 @@
+// Packages:
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
+import { Provider } from 'react-redux';
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+} from 'react-router-dom';
+import { createGlobalStyle } from 'styled-components';
 import reportWebVitals from './reportWebVitals';
 
+
+// Imports:
+import store from './redux/store';
+
+
+// Constants:
+import COLORS from './styles/colors';
+import ROUTES from './routes/routes';
+
+
+// Components:
+import Navbar from './components/global/Navbar';
+import App from './views/App';
+
+
+// Styles:
+const GlobalStyle = createGlobalStyle`
+  body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  code {
+    font-family: 'Barlow Condensed', source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+      monospace;
+  }
+
+  ::selection {
+    padding: 1em;
+    background-color: ${ COLORS.PRIMARY };
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+`;
+
+
+// Functions:
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Provider store={ store }>
+      <Router>
+        <GlobalStyle />
+        <Navbar />
+        <Switch>
+          <Route path={ ROUTES.INDEX } component={ App } />
+          {/* <Route path={ ROUTES.REGISTER } component={ Register } /> */}
+          {/* <Route exact path={ ROUTES._404 } component={ _404 } /> */}
+          {/* <Route path={ ROUTES.WEBSITE } component={ Website } /> */}
+          {/* <Route path={ ROUTES.PROFILE } component={ Profile } /> */}
+        </Switch>
+      </Router>
+    </Provider>
   </React.StrictMode>,
-  document.getElementById('root')
+  document.getElementById('jessy')
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
