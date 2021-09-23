@@ -1,10 +1,10 @@
 // Packages:
-import React, { useRef, useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import styled from 'styled-components'
 import Color from 'color'
-import { useMouse, useWindowSize } from 'react-use'
 import { Scrollbars } from 'react-custom-scrollbars-2'
 import { playButtonPress } from '../../../util/soundEffects'
+import { DragDropContext, Droppable } from 'react-beautiful-dnd'
 
 
 // Typescript:
@@ -158,17 +158,10 @@ const TodoList = () => {
   // Constants:
   const LCDScreenDimensions = { W: 5, H: 2 }
 
-  // Ref:
-  const tasksRef = useRef<any>(null)
-  const scrollbarsRef = useRef<any | null>(null)
-
   // State:
-  const { docX: mouseX, docY: mouseY } = useMouse(tasksRef)
-  const { width: windowWidth, height: windowHeight } = useWindowSize()
   const [ isOn, setIsOn ] = useState(true)
-  const [ tasksWrapperBounds, setTasksWrapperBounds ] = useState<DOMRect | undefined>(undefined)
   const [ tasks, setTasks ] = useState<TTask[]>(
-    [ ...Array(50) ].map((_e, i) => (
+    [ ...Array(5) ].map((_e, i) => (
       {
       _id: i.toString(),
       isDone: false,
@@ -183,42 +176,25 @@ const TodoList = () => {
     length: tasks.length
   })
   const [ LCDCharArray, setLCDCharArray ] = useState<string[]>([])
-  const [ scrollbarYOffset, setScrollbarYOffset ] = useState(0)
-  const [ isDragging, setIsDragging ] = useState(false)
-  const [ taskItemBeingDragged, setTaskItemBeingDragged ] = useState<{
-    _id: string
-    index: number
-    grabEnd: ((event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void) | undefined
-    dimensions?: {
-      width: string
-      height: string
-      dirtyWidth: string
-      dirtyHeight: string
-    }
-  }>({
-    _id: '',
-    index: 0,
-    grabEnd: undefined
-  })
-  const [ taskItemGrabOffset, setTaskItemGrabOffset ] = useState({ x: 0, y: 0 })
-  const [ canTaskItemMove, setCanTaskItemMove ] = useState({ x: true, y: true })
+  const [ taskIndexBeingDragged, setTaskIndexBeingDragged ] = useState<number | undefined>(undefined)
 
   // Functions:
-  // const reorderTasks = useCallback((tasks: TTask[], startIndex, endIndex) => {
-  //   const result = Array.from(tasks)
-  //   const [ removed ] = result.splice(startIndex, 1)
-  //   result.splice(endIndex, 0, removed)
-  //   return result
-  // }, [])
+  const reorderTasks = useCallback((tasks: TTask[], startIndex, endIndex) => {
+    const result = Array.from(tasks)
+    const [ removed ] = result.splice(startIndex, 1)
+    result.splice(endIndex, 0, removed)
+    return result
+  }, [])
 
-  // const onDragEnd = useCallback((result) => {
-  //   if (!result.destination) return
-  //   setTasks(reorderTasks(
-  //     tasks,
-  //     result.source.index,
-  //     result.destination.index
-  //   ))
-  // }, [ reorderTasks, tasks ])
+  const onDragEnd = useCallback((result) => {
+    setTaskIndexBeingDragged(undefined)
+    if (!result.destination) return
+    setTasks(reorderTasks(
+      tasks,
+      result.source.index,
+      result.destination.index
+    ))
+  }, [ reorderTasks, tasks ])
 
   const updateTaskDoneStatus = useCallback((_id: string, newIsDone: boolean) => {
     const newTasks = tasks, taskIndex = newTasks.findIndex(task => task._id === _id)
@@ -231,22 +207,14 @@ const TodoList = () => {
     else setTasksMetadata({ ...tasksMetadata, done: tasksMetadata.done - 1 })
   }, [ tasks, tasksMetadata ])
 
+  const deleteTask = useCallback((_id: string) => {
+    const newTasks = tasks.filter(task => task._id !== _id), taskToBeDeleted = tasks[ tasks.findIndex(task => task._id === _id) ]
+    setTasks(newTasks)
+    if (taskToBeDeleted.isDone) setTasksMetadata({ ...tasksMetadata, done: tasksMetadata.done - 1, length: tasksMetadata.length - 1 })
+    else setTasksMetadata({ ...tasksMetadata, length: tasksMetadata.length - 1 })
+  }, [ tasks, tasksMetadata ])
+
   // Effects:
-  useEffect(() => {
-    setTasksWrapperBounds(tasksRef.current.getBoundingClientRect() as DOMRect)
-  }, [ windowWidth, windowHeight ])
-
-  useEffect(() => {
-    if (isDragging && tasksWrapperBounds && taskItemBeingDragged?.dimensions) {
-      // if (mouseX < (tasksWrapperBounds.left + taskItemGrabOffset.x) || (mouseX + parseFloat(taskItemBeingDragged.dimensions.dirtyWidth) - taskItemGrabOffset.x) > (tasksWrapperBounds.right + 5)) {
-      //   console.log('outside')
-      //   setCanTaskItemMove({ ...canTaskItemMove, x: false })
-      // } else if (canTaskItemMove.x === false) {
-      //   setCanTaskItemMove({ ...canTaskItemMove, x: true })
-      // }
-    }
-  }, [ isDragging, mouseX, taskItemBeingDragged.dimensions, taskItemBeingDragged, taskItemGrabOffset, tasksWrapperBounds, canTaskItemMove ])
-
   useEffect(() => {
     setLCDCharArray(`Tasks: ${ tasksMetadata.done } Done, ${ tasksMetadata.length - tasksMetadata.done } Left`.toUpperCase().split(''))
   }, [ tasksMetadata.done, tasksMetadata.length ])
@@ -260,49 +228,41 @@ const TodoList = () => {
             !isOn && <UntouchabilityLayer />
           }
           <Screen isOn={ isOn }>
-            {/* <Scrollbars
-              ref={ scrollbarsRef }
+            <Scrollbars
               style={{ width: '100%', height: '100%' }}
-              // onScrollStop={() => {
-              //   setScrollbarYOffset(scrollbarsRef.current.viewScrollTop as number)
-              // }}
-              onScroll={(event) => {
-                setScrollbarYOffset((event.target as any).scrollTop as number)
-              }}
               renderTrackHorizontal={ props => <div { ...props } style={{ display: 'none' }} className='track-horizontal' /> }
-            > */}
-              <Tasks
-                id='tasks-wrapper'
-                ref={ tasksRef }
-                onMouseUp={ taskItemBeingDragged.grabEnd }
+            >
+              <DragDropContext
+                onDragEnd={ onDragEnd }
+                onDragStart={(result) => {
+                  setTaskIndexBeingDragged(result.source.index)
+                  console.log(result.source.index)
+                }}
               >
-                {
-                  tasks.map((task, i) => (
-                    <TaskItem
-                      index={ i }
-                      key={ i }
-                      task={ task }
-                      mouseX={ mouseX }
-                      mouseY={ mouseY }
-                      updateTaskDoneStatus={ updateTaskDoneStatus }
-                      scrollbarYOffset={ scrollbarYOffset }
-                      isDragging={ isDragging }
-                      setIsDragging={ setIsDragging }
-                      taskItemBeingDragged={ taskItemBeingDragged }
-                      setTaskItemBeingDragged={ setTaskItemBeingDragged }
-                      grabOffset={ taskItemGrabOffset }
-                      setGrabOffset={ setTaskItemGrabOffset }
-                      canTaskItemMove={ canTaskItemMove }
-                    />
-                  ))
-                }
-                {
-                  isDragging
-                  &&
-                  <TaskItemPlaceholder style={{ height: taskItemBeingDragged.dimensions?.height }} />
-                }
-              </Tasks>
-            {/* </Scrollbars> */}
+                <Droppable droppableId='droppable'>
+                  {(provided, snapshot) => (
+                    <Tasks
+                      { ...provided.droppableProps }
+                      ref={ provided.innerRef }
+                    >
+                      {
+                        tasks.map((task, index) => (
+                          <TaskItem
+                            index={ index }
+                            key={ task._id }
+                            task={ task }
+                            updateTaskDoneStatus={ updateTaskDoneStatus }
+                            deleteTask={ deleteTask }
+                            taskIndexBeingDragged={ taskIndexBeingDragged }
+                          />
+                        ))
+                      }
+                      { provided.placeholder }
+                    </Tasks>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            </Scrollbars>
           </Screen>
         </ScreenContainer>
         <Buttons>
