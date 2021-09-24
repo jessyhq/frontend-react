@@ -7,6 +7,7 @@ import { select as d3Select } from 'd3-selection'
 import { transition as d3Transition } from 'd3-transition'
 import { line, curveCardinal } from 'd3-shape'
 import { getWidthOfText } from '../../../util/getWidthOfText'
+import useTimeout from '../../../hooks/use-timeout'
 import { playStrikeThrough } from '../../../util/soundEffects'
 
 
@@ -21,7 +22,8 @@ import { MdMoreVert, MdModeEdit, MdDelete } from 'react-icons/md'
 
 // Constants:
 import COLORS from '../../../styles/colors'
-import useTimeout from '../../../hooks/use-timeout'
+
+
 d3Select.prototype.transition = d3Transition
 
 
@@ -38,7 +40,15 @@ export const Wrapper = styled.div<{ isTaskDeleted: { transitionSet: boolean, sho
   border-radius: 15px;
   filter: ${ props => props.isTaskDeleted.shouldTransition ? 'opacity(0)' : 'opacity(1)' };
   transform: ${ props => props.isTaskDeleted.transitionSet ? props.isTaskDeleted.shouldTransition ? 'scale(0.9) !important' : 'scale(1) !important' : '' };
-  transition: ${ props => props.isTaskDeleted.transitionSet ? props.isTaskDeleted.shouldTransition ? 'all 0.25s ease !important' : 'all 0s !important' : '' };
+  transition: ${
+    props => props.isTaskDeleted.transitionSet ?
+      props.isTaskDeleted.shouldTransition ?
+        'all 0.25s ease !important'
+      :
+        'all 0s !important'
+    :
+      ''
+  };
 `
 
 export const Edge = styled.div`
@@ -162,6 +172,16 @@ export const DeleteIcon = styled(MdDelete)<{ isvisible: string }>`
     color: palevioletred;
     transition: all 0.25s ease;
   }
+`
+
+export const BoxShadow = styled.span`
+  position: absolute;
+  z-index: -1;
+  left: 0%;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  transition: all 0.25s ease;
 `
 
 
@@ -335,6 +355,7 @@ const TaskItem = (
             <EditIcon isvisible={ `${ !isTaskDone }` } />
             <DeleteIcon isvisible={ `${ isTaskDone }` } onClick={ () => setIsTaskDeleted({ ...isTaskDeleted, transitionSet: true }) } />
           </Edge>
+          <BoxShadow style={{ boxShadow: snapshot.isDragging ? `0px 1px 10px -5px ${ Color(COLORS.WHITE).darken(0.25).hex() }` : '' }} />
         </Wrapper>
       )}
     </Draggable>

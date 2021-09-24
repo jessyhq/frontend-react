@@ -75,11 +75,12 @@ export const InnerContainer = styled.div`
 
 export const ScreenContainer = styled.div<{ isOn: boolean }>`
   position: relative;
-  width: 88%;
+  width: 91%;
   height: 72%;
   margin: 3%;
-  padding: 3%;
+  padding: 1%;
   padding-top: 7%;
+  padding-right: 2%;
   background-color: ${ props => props.isOn ? Color(COLORS.WHITE).darken(0.05).hex() : COLORS.BLACK };
   border-radius: 10px;
   box-shadow:
@@ -161,7 +162,7 @@ const TodoList = () => {
   // State:
   const [ isOn, setIsOn ] = useState(true)
   const [ tasks, setTasks ] = useState<TTask[]>(
-    [ ...Array(5) ].map((_e, i) => (
+    [ ...Array(15) ].map((_e, i) => (
       {
       _id: i.toString(),
       isDone: false,
