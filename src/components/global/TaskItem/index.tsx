@@ -26,16 +26,19 @@ d3Select.prototype.transition = d3Transition
 
 
 // Styles:
-export const Wrapper = styled.div`
+export const Wrapper = styled.div<{ isTaskDeleted: { transitionSet: boolean, shouldTransition: boolean, transitioned: boolean } }>`
   display: flex;
   align-items: center;
   width: 92%;
   height: 2rem;
   margin-right: 1%;
-  margin-bottom: 0.75rem;
+  margin-bottom: ${ props => props.isTaskDeleted.shouldTransition ? '-3rem' : '0.75rem' };
   padding: 0.5rem 4%;
   background-color: ${ COLORS.WHITE };
   border-radius: 15px;
+  filter: ${ props => props.isTaskDeleted.shouldTransition ? 'opacity(0)' : 'opacity(1)' };
+  transform: ${ props => props.isTaskDeleted.transitionSet ? props.isTaskDeleted.shouldTransition ? 'scale(0.9) !important' : 'scale(1) !important' : '' };
+  transition: ${ props => props.isTaskDeleted.transitionSet ? props.isTaskDeleted.shouldTransition ? 'all 0.25s ease !important' : 'all 0s !important' : '' };
 `
 
 export const Edge = styled.div`
@@ -123,6 +126,9 @@ export const LineSVG = styled.svg`
 export const Title = styled.div<{ isStrikethrough: boolean }>`
   position: relative;
   color: ${ props => props.isStrikethrough ? Color(COLORS.WHITE).darken(0.75).alpha(0.6).toString() : 'inherit' };
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   user-select: none;
   cursor: default;
   transition: all 0.25s ease;
@@ -179,7 +185,7 @@ const TaskItem = (
 
   // State:
   const [ isTaskDone, setIsTaskDone ] = useState(task.isDone)
-  const [ isTaskDeleted, setIsTaskDeleted ] = useState(false)
+  const [ isTaskDeleted, setIsTaskDeleted ] = useState({ transitionSet: false, shouldTransition: false, transitioned: false })
   const [ scribble, setScribble ] = useState<undefined | any>()
   const [ scribbleDimensions, setScribbleDimensions ] = useState({ width: getWidthOfText(task.title, 'Roboto', `${ 16 + (0.5 * 2) }px`), height: 10 })
   const [ scribblePathLength, setScribblePathLength ] = useState(0)
@@ -248,11 +254,23 @@ const TaskItem = (
     }
   }, [ generateScribble, isScribbleDrawn, isTaskDone, scribble, scribblePathLength ])
 
-  useTimeout(() => {
-    if (isTaskDeleted) {
+  useEffect(() => {
+    if (isTaskDeleted.transitioned) {
       deleteTask(task._id)
     }
-  }, 250)
+  }, [ deleteTask, isTaskDeleted.transitioned, task._id ])
+
+  useTimeout(() => {
+    if (isTaskDeleted.transitionSet && !isTaskDeleted.shouldTransition && !isTaskDeleted.transitioned) {
+      setIsTaskDeleted({ ...isTaskDeleted, shouldTransition: true })
+    }
+  }, 1)
+
+  useTimeout(() => {
+    if (isTaskDeleted.shouldTransition) {
+      setIsTaskDeleted({ ...isTaskDeleted, transitioned: true })
+    }
+  }, 250 + 1)
   
   // Return:
   return (
@@ -286,6 +304,7 @@ const TaskItem = (
               })()
             }
           }
+          isTaskDeleted={ isTaskDeleted }
         >
           <GrabHandle { ...provided.dragHandleProps }>
             <HalfGrabIcon style={{ marginLeft: '-1.3rem' }} />
@@ -314,11 +333,10 @@ const TaskItem = (
           </Middle>
           <Edge>
             <EditIcon isvisible={ `${ !isTaskDone }` } />
-            <DeleteIcon isvisible={ `${ isTaskDone }` } onClick={ () => setIsTaskDeleted(true) } />
+            <DeleteIcon isvisible={ `${ isTaskDone }` } onClick={ () => setIsTaskDeleted({ ...isTaskDeleted, transitionSet: true }) } />
           </Edge>
         </Wrapper>
       )}
-      
     </Draggable>
   )
 }
