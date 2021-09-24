@@ -76,10 +76,10 @@ export const InnerContainer = styled.div`
 export const ScreenContainer = styled.div<{ isOn: boolean }>`
   position: relative;
   width: 91%;
-  height: 72%;
+  height: 77%;
   margin: 3%;
   padding: 1%;
-  padding-top: 7%;
+  padding-top: 2%;
   padding-right: 2%;
   background-color: ${ props => props.isOn ? Color(COLORS.WHITE).darken(0.05).hex() : COLORS.BLACK };
   border-radius: 10px;
