@@ -28,6 +28,19 @@ d3Select.prototype.transition = d3Transition
 
 
 // Styles:
+export const Edge = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 7%;
+  height: 100%;
+`
+
+export const OptionsEdge = styled(Edge)`
+  filter: opacity(0);
+  transition: all 0.25s ease;
+`
+
 export const Wrapper = styled.div<{ isTaskDeleted: { transitionSet: boolean, shouldTransition: boolean, transitioned: boolean } }>`
   display: flex;
   align-items: center;
@@ -49,14 +62,11 @@ export const Wrapper = styled.div<{ isTaskDeleted: { transitionSet: boolean, sho
     :
       ''
   };
-`
 
-export const Edge = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 7%;
-  height: 100%;
+  &:hover ${ OptionsEdge } {
+    filter: opacity(1);
+    transition: all 0.25s ease;
+  }
 `
 
 export const HalfGrabIcon = styled(MdMoreVert)`
@@ -351,10 +361,10 @@ const TaskItem = (
             />
             <Title isStrikethrough={ isTaskDone }>{ task.title }</Title>
           </Middle>
-          <Edge>
+          <OptionsEdge>
             <EditIcon isvisible={ `${ !isTaskDone }` } />
             <DeleteIcon isvisible={ `${ isTaskDone }` } onClick={ () => setIsTaskDeleted({ ...isTaskDeleted, transitionSet: true }) } />
-          </Edge>
+          </OptionsEdge>
           <BoxShadow style={{ boxShadow: snapshot.isDragging ? `0px 1px 10px -5px ${ Color(COLORS.WHITE).darken(0.25).hex() }` : '' }} />
         </Wrapper>
       )}
