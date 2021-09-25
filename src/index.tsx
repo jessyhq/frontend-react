@@ -1,28 +1,29 @@
 // Packages:
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { Provider } from 'react-redux';
+import React from 'react'
+import ReactDOM from 'react-dom'
+import { Provider } from 'react-redux'
 import {
   BrowserRouter as Router,
   Switch,
   Route,
-} from 'react-router-dom';
-import { createGlobalStyle } from 'styled-components';
-import reportWebVitals from './reportWebVitals';
+} from 'react-router-dom'
+import { createGlobalStyle } from 'styled-components'
+import Color from 'color'
+import reportWebVitals from './reportWebVitals'
 
 
 // Imports:
-import store from './redux/store';
+import store from './redux/store'
 
 
 // Constants:
-import COLORS from './styles/colors';
-import ROUTES from './routes/routes';
+import COLORS from './styles/colors'
+import ROUTES from './routes/routes'
 
 
 // Components:
-import Navbar from './components/global/Navbar';
-import App from './views/App';
+import Navbar from './components/global/Navbar'
+import App from './views/App'
 
 
 // Styles:
@@ -43,7 +44,7 @@ const GlobalStyle = createGlobalStyle`
 
   ::selection {
     padding: 1em;
-    background-color: ${ COLORS.PRIMARY };
+    background-color: ${ Color(COLORS.PRIMARY).saturate(1.5).alpha(0.35).toString() };
   }
 
   a {
@@ -56,7 +57,7 @@ const GlobalStyle = createGlobalStyle`
       'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
       sans-serif;
   }
-`;
+`
 
 
 // Functions:
@@ -77,6 +78,6 @@ ReactDOM.render(
     </Provider>
   </React.StrictMode>,
   document.getElementById('jessy')
-);
+)
 
-reportWebVitals();
+reportWebVitals()

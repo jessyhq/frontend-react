@@ -109,7 +109,7 @@ export const CheckmarkIcon = styled(ImCheckmark)<{ isvisible: string }>`
   transition: all 0.25s ease;
 `
 
-export const Checkbox = styled.div<{ isChecked: boolean }>`
+export const Checkbox = styled.div<{ isChecked: boolean, isClickable: boolean }>`
   display: flex;
   justify-content: center;
   align-items: center;
@@ -117,16 +117,24 @@ export const Checkbox = styled.div<{ isChecked: boolean }>`
   height: 1.25rem;
   border-radius: 5px;
   background-color: ${ Color(COLORS.WHITE).darken(0.25).alpha(0.5).toString() };
-  cursor: pointer;
+  cursor: ${ props => props.isClickable ? 'pointer' : 'default' };
   transition: all 0.25s ease;
 
   &:hover {
-    box-shadow: inset 0px 0px 5px 0px ${ Color(COLORS.WHITE).darken(0.25).hex() };
+    box-shadow: ${ props => props.isClickable ? 'inset 0px 0px 5px 0px ' + Color(COLORS.WHITE).darken(0.25).hex() : '' };
     transition: all 0.25s ease;
   }
 
   &:hover ${ CheckmarkIcon } {
-    color: ${ props => props.isChecked ? Color(COLORS.WHITE).darken(0.75).toString() : Color(COLORS.WHITE).darken(0.75).alpha(0.5).toString() };
+    color: ${
+      props => props.isChecked ?
+        Color(COLORS.WHITE).darken(0.75).toString()
+      :
+        props.isClickable ?
+          Color(COLORS.WHITE).darken(0.75).alpha(0.5).toString()
+        :
+          ''
+    };
     transition: all 0.25s ease;
   }
 `

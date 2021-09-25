@@ -202,6 +202,7 @@ const TaskItem = ({ index, task, updateTaskDoneStatus, deleteTask, taskIndexBein
           <Edge>
             <Checkbox
               isChecked={ isTaskDone }
+              isClickable={ !isEditing }
               onClick={() => {
                 if (!isEditing && canToggleTaskDone) {
                   setIsTaskDone(!isTaskDone)

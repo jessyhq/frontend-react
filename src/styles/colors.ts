@@ -1,6 +1,6 @@
 // Constants:
 const COLORS = {
-  PRIMARY: '#EC5766',
+  PRIMARY: '#46ACC2',
   WHITE: '#F8F8FA',
   BLACK: '#121212'
 }

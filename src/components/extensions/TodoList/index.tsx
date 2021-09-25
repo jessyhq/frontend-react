@@ -105,6 +105,41 @@ export const Screen = styled.div<{ isOn: boolean }>`
   transition: all 0.25s ease;
 `
 
+export const Placeholder = styled.div`
+  position: relative;
+  color: ${ Color(COLORS.WHITE).darken(0.5).hex() };
+  font-weight: 500;
+  font-size: 1rem;
+  user-select: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+`
+
+export const AddTask = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 92%;
+  height: 2rem;
+  margin-right: 1%;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 4%;
+  background-color: ${ Color(COLORS.WHITE).darken(0.1).hex() };
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+
+  &:hover {
+    background-color: ${ Color(COLORS.PRIMARY).saturate(0.75).alpha(0.25).toString() };
+    transition: all 0.25s ease;
+  }
+
+  &:hover ${ Placeholder } {
+    color: ${ Color(COLORS.PRIMARY).darken(0.25).toString() };
+    transition: all 0.25s ease;
+  }
+`
+
 export const Tasks = styled.div`
   display: flex;
   align-items: center;
@@ -170,8 +205,9 @@ const TodoList = () => {
         createdAt: Date.now()
       },
       title: `Task #${ i }`
-    }
-  )))
+      }
+    )
+  ))
   const [ tasksMetadata, setTasksMetadata ] = useState({
     done: 0,
     length: tasks.length
@@ -206,6 +242,20 @@ const TodoList = () => {
     setTasks(newTasks)
     if (newIsDone) setTasksMetadata({ ...tasksMetadata, done: tasksMetadata.done + 1 })
     else setTasksMetadata({ ...tasksMetadata, done: tasksMetadata.done - 1 })
+  }, [ tasks, tasksMetadata ])
+
+  const addTask = useCallback(() => {
+    const newTasks = tasks
+    newTasks.unshift({
+      _id: (Math.random() + 1).toString(36).substring(2),
+      isDone: false,
+      time: {
+        createdAt: Date.now()
+      },
+      title: `Task #${ (Math.random() + 1).toString(36).substring(2) }`
+    })
+    setTasks(newTasks)
+    setTasksMetadata({ ...tasksMetadata, length: tasksMetadata.length + 1 })
   }, [ tasks, tasksMetadata ])
 
   const deleteTask = useCallback((_id: string) => {
@@ -243,6 +293,9 @@ const TodoList = () => {
                       { ...provided.droppableProps }
                       ref={ provided.innerRef }
                     >
+                      <AddTask onClick={ addTask }>
+                        <Placeholder>add a new task</Placeholder>
+                      </AddTask>
                       {
                         tasks.map((task, index) => (
                           <TaskItem
