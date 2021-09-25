@@ -49,6 +49,7 @@ const TaskItem = ({ index, task, updateTaskDoneStatus, deleteTask, taskIndexBein
   const lineSVGRef = useRef<SVGSVGElement | null>(null)
 
   // State:
+  const [ mountStatus, setMountStatus ] = useState<-1 | 0 | 1 | 2>(-1)
   const [ isTaskDone, setIsTaskDone ] = useState(task.isDone)
   const [ canToggleTaskDone, setCanToggleTaskDone ] = useState(true)
   const [ isTaskDeleted, setIsTaskDeleted ] = useState({ transitionSet: false, shouldTransition: false, transitioned: false })
@@ -89,6 +90,14 @@ const TaskItem = ({ index, task, updateTaskDoneStatus, deleteTask, taskIndexBein
   }, [])
 
   // Effects:
+  useEffect(() => {
+    setMountStatus(0)
+  }, [])
+
+  useTimeout(() => {
+    setMountStatus(1)
+  }, 500)
+
   useEffect(() => {
     if (!isEditing && taskTitle !== oldTaskTitle) {
       setOldTaskTitle(taskTitle)
@@ -182,6 +191,8 @@ const TaskItem = ({ index, task, updateTaskDoneStatus, deleteTask, taskIndexBein
               })()
             }
           }
+          index={ index }
+          mountStatus={ mountStatus }
           isTaskDeleted={ isTaskDeleted }
         >
           <GrabHandle { ...provided.dragHandleProps }>

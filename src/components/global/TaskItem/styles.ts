@@ -26,7 +26,7 @@ export const OptionsEdge = styled(Edge)<{ shouldHideWhenNotHovering: boolean }>`
   transition: all 0.25s ease;
 `
 
-export const Wrapper = styled.div<{ isTaskDeleted: { transitionSet: boolean, shouldTransition: boolean, transitioned: boolean } }>`
+export const Wrapper = styled.div<{ index: number, mountStatus: -1 | 0 | 1 | 2, isTaskDeleted: { transitionSet: boolean, shouldTransition: boolean, transitioned: boolean } }>`
   display: flex;
   align-items: center;
   width: 92%;
@@ -36,8 +36,22 @@ export const Wrapper = styled.div<{ isTaskDeleted: { transitionSet: boolean, sho
   padding: 0.5rem 4%;
   background-color: ${ COLORS.WHITE };
   border-radius: 15px;
-  filter: ${ props => props.isTaskDeleted.shouldTransition ? 'opacity(0)' : 'opacity(1)' };
-  transform: ${ props => props.isTaskDeleted.transitionSet ? props.isTaskDeleted.shouldTransition ? 'scale(0.9) !important' : 'scale(1) !important' : '' };
+  filter: ${ props => (props.isTaskDeleted.shouldTransition || props.mountStatus === -1) ? 'opacity(0)' : 'opacity(1)' };
+  transform: ${
+    props => props.isTaskDeleted.transitionSet ?
+      props.isTaskDeleted.shouldTransition ?
+        'scale(0.9) !important'
+      :
+        'scale(1) !important'
+    :
+      props.mountStatus === 1 ?
+        ''
+      :
+        props.mountStatus === -1 ?
+          'translate(0px, 20px) !important'
+        :
+          'translate(0px, 0px) !important'
+  };
   transition: ${
     props => props.isTaskDeleted.transitionSet ?
       props.isTaskDeleted.shouldTransition ?
@@ -45,7 +59,10 @@ export const Wrapper = styled.div<{ isTaskDeleted: { transitionSet: boolean, sho
       :
         'all 0s !important'
     :
-      ''
+      props.mountStatus === 1 ?
+        ''
+      :
+        `all 0.25s ease ${ Math.min(0.1 * props.index, 2.5) }s !important`
   };
 
   &:hover ${ OptionsEdge } {
