@@ -1,6 +1,5 @@
 // Packages:
 import React, { useState, useRef, useCallback, useEffect } from 'react'
-import styled from 'styled-components'
 import Color from 'color'
 import { Draggable } from 'react-beautiful-dnd'
 import { select as d3Select } from 'd3-selection'
@@ -12,12 +11,7 @@ import { playStrikeThrough } from '../../../util/soundEffects'
 
 
 // Typescript:
-import { TTask } from '../../../types/taskItem'
-
-
-// Imports:
-import { ImCheckmark } from 'react-icons/im'
-import { MdMoreVert, MdModeEdit, MdDelete } from 'react-icons/md'
+import { ITaskItemProps } from './types'
 
 
 // Constants:
@@ -26,218 +20,30 @@ import { generateRandomTaskName } from '../../../util/generateRandomTaskName'
 import { useInput } from '../../../hooks/use-input'
 
 
-d3Select.prototype.transition = d3Transition
-
-
 // Styles:
-export const Edge = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 7%;
-  height: 100%;
-`
-
-export const OptionsEdge = styled(Edge)<{ shouldHideWhenNotHovering: boolean }>`
-  filter: ${ props => props.shouldHideWhenNotHovering ? 'opacity(0)' : 'opacity(1)' };
-  transition: all 0.25s ease;
-`
-
-export const Wrapper = styled.div<{ isTaskDeleted: { transitionSet: boolean, shouldTransition: boolean, transitioned: boolean } }>`
-  display: flex;
-  align-items: center;
-  width: 92%;
-  height: 2rem;
-  margin-right: 1%;
-  margin-bottom: ${ props => props.isTaskDeleted.shouldTransition ? '-3rem' : '0.75rem' };
-  padding: 0.5rem 4%;
-  background-color: ${ COLORS.WHITE };
-  border-radius: 15px;
-  filter: ${ props => props.isTaskDeleted.shouldTransition ? 'opacity(0)' : 'opacity(1)' };
-  transform: ${ props => props.isTaskDeleted.transitionSet ? props.isTaskDeleted.shouldTransition ? 'scale(0.9) !important' : 'scale(1) !important' : '' };
-  transition: ${
-    props => props.isTaskDeleted.transitionSet ?
-      props.isTaskDeleted.shouldTransition ?
-        'all 0.25s ease !important'
-      :
-        'all 0s !important'
-    :
-      ''
-  };
-
-  &:hover ${ OptionsEdge } {
-    filter: opacity(1);
-    transition: all 0.25s ease;
-  }
-`
-
-export const HalfGrabIcon = styled(MdMoreVert)`
-  position: absolute;
-  width: 1.25rem;
-  height: 3rem;
-  margin-left: -0.5rem;
-  color: ${ Color(COLORS.WHITE).darken(0.75).alpha(0.4).toString() };
-  user-select: none;
-  transition: all 0.25s ease;
-`
-
-export const GrabHandle = styled(Edge)`
-  width: 6%;
-  margin-left: 1%;
-  pointer-events: auto;
-  transition: all 0.25s ease, transform 0s;
-
-  &:hover ${ HalfGrabIcon } {
-    color: ${ Color(COLORS.WHITE).darken(0.75).toString() };
-    transition: all 0.25s ease;
-  }
-
-  &:active:hover ${ HalfGrabIcon } {
-    color: ${ Color(COLORS.WHITE).darken(0.75).toString() };
-    transition: all 0.25s ease;
-  }
-
-  &:active:hover {
-    cursor: grabbing;
-  }
-`
-
-export const CheckmarkIcon = styled(ImCheckmark)<{ isvisible: string }>`
-  font-size: 0.75rem;
-  margin-right: 1px;
-  color: ${ props => props.isvisible === 'true' ? Color(COLORS.WHITE).darken(0.75).toString() : Color(COLORS.WHITE).darken(0.75).alpha(0.25).toString() };
-  transition: all 0.25s ease;
-`
-
-export const Checkbox = styled.div<{ isChecked: boolean }>`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  border-radius: 5px;
-  background-color: ${ Color(COLORS.WHITE).darken(0.25).alpha(0.5).toString() };
-  cursor: pointer;
-  transition: all 0.25s ease;
-
-  &:hover {
-    box-shadow: inset 0px 0px 5px 0px ${ Color(COLORS.WHITE).darken(0.25).hex() };
-    transition: all 0.25s ease;
-  }
-
-  &:hover ${ CheckmarkIcon } {
-    color: ${ props => props.isChecked ? Color(COLORS.WHITE).darken(0.75).toString() : Color(COLORS.WHITE).darken(0.75).alpha(0.5).toString() };
-    transition: all 0.25s ease;
-  }
-`
-
-export const Middle = styled.div`
-  display: flex;
-  align-items: center;
-  width: 73%;
-  height: 100%;
-  margin: 0 3%;
-  font-weight: 500;
-  color: ${ COLORS.BLACK };
-`
-
-export const LineSVG = styled.svg`
-  position: absolute;
-  z-index: -1;
-  max-width: 67%;
-`
-
-export const TitleInput = styled.input`
-  margin-left: -1%;
-  font-weight: 500;
-  font-size: 1rem;
-  background-color: transparent;
-  border: none;
-  outline: none;
-`
-
-export const Title = styled.div<{ isStrikethrough: boolean }>`
-  position: relative;
-  color: ${ props => props.isStrikethrough ? Color(COLORS.WHITE).darken(0.75).alpha(0.6).toString() : 'inherit' };
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  user-select: none;
-  cursor: default;
-  transition: all 0.25s ease;
-`
-
-export const DoneIcon = styled(ImCheckmark)<{ isvisible: string }>`
-  position: absolute;
-  margin-bottom: ${ props => props.isvisible === 'true' ? '0rem' : '-0.5rem' };
-  font-size: ${ props => props.isvisible === 'true' ? '1.25rem' : '0rem' };
-  color: ${ Color(COLORS.WHITE).darken(0.75).alpha(0.4).toString() };
-  user-select: none;
-  cursor: pointer;
-  transition: color 0.25s ease, margin 0.5s ease, font-size 0.5s ease;
-
-  &:hover {
-    color: lightseagreen;
-    transition: all 0.25s ease;
-  }
-`
-
-export const EditIcon = styled(MdModeEdit)<{ isvisible: string }>`
-  position: absolute;
-  margin-left: ${ props => props.isvisible === 'true' ? '0rem' : '-2rem' };
-  font-size: ${ props => props.isvisible === 'true' ? '1.25rem' : '0rem' };
-  color: ${ Color(COLORS.WHITE).darken(0.75).alpha(0.4).toString() };
-  user-select: none;
-  cursor: pointer;
-  transition: color 0.25s ease, margin 0.5s ease, font-size 0.5s ease;
-
-  &:hover {
-    color: ${ Color(COLORS.WHITE).darken(0.75).toString() };
-    transition: all 0.25s ease;
-  }
-`
-
-export const DeleteIcon = styled(MdDelete)<{ isvisible: string }>`
-  position: absolute;
-  margin-right: ${ props => props.isvisible === 'true' ? '0rem' : '-2rem' };
-  font-size: ${ props => props.isvisible === 'true' ? '1.25rem' : '0rem' };
-  color: ${ Color(COLORS.WHITE).darken(0.75).alpha(0.4).toString() };
-  user-select: none;
-  cursor: pointer;
-  transition: color 0.25s ease, margin 0.5s ease, font-size 0.5s ease;
-
-  &:hover {
-    color: palevioletred;
-    transition: all 0.25s ease;
-  }
-`
-
-export const BoxShadow = styled.span`
-  position: absolute;
-  z-index: -1;
-  left: 0%;
-  width: 100%;
-  height: 100%;
-  border-radius: 10px;
-  transition: all 0.25s ease;
-`
+import {
+  Wrapper,
+  GrabHandle,
+  HalfGrabIcon,
+  Edge,
+  Checkbox,
+  CheckmarkIcon,
+  Middle,
+  LineSVG,
+  TitleInput,
+  Title,
+  OptionsEdge,
+  DoneIcon,
+  EditIcon,
+  DeleteIcon,
+  BoxShadow
+} from './styles'
 
 
 // Functions:
-const TaskItem = (
-  {
-    index,
-    task,
-    updateTaskDoneStatus,
-    deleteTask,
-    taskIndexBeingDragged,
-  }: {
-    index: number
-    task: TTask
-    updateTaskDoneStatus: (_id: string, newIsDone: boolean) => void
-    deleteTask: (_id: string) => void
-    taskIndexBeingDragged?: number
-  }) => {
+d3Select.prototype.transition = d3Transition
+
+const TaskItem = ({ index, task, updateTaskDoneStatus, deleteTask, taskIndexBeingDragged }: ITaskItemProps) => {
   // Ref:
   const middleRef = useRef<HTMLDivElement | null>(null)
   const lineSVGRef = useRef<SVGSVGElement | null>(null)
@@ -283,12 +89,6 @@ const TaskItem = (
   }, [])
 
   // Effects:
-  // useEffect(() => {
-  //   const rawScribbleWidth = getWidthOfText(taskTitle, 'Roboto', `${ 16 + (0.5 * 2) }px`)
-  //   setScribbleDimensions({ width: Math.min(rawScribbleWidth, middleRef.current?.getBoundingClientRect().width ?? 220), height: 10 })
-  //   generateScribble({ width: Math.min(rawScribbleWidth, middleRef.current?.getBoundingClientRect().width ?? 220), height: 10 })
-  // }, [ generateScribble, taskTitle ])
-
   useEffect(() => {
     if (!isEditing && taskTitle !== oldTaskTitle) {
       setOldTaskTitle(taskTitle)

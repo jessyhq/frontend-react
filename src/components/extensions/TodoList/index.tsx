@@ -86,7 +86,7 @@ export const ScreenContainer = styled.div<{ isOn: boolean }>`
   box-shadow:
     inset 0px 0px 10px 0px ${ props => props.isOn ? Color(COLORS.WHITE).darken(0.2).saturate(5).hex() : Color(COLORS.WHITE).darken(0.75).hex() },
     0px 0px 5px 0px ${ props => props.isOn ? Color(COLORS.WHITE).darken(0.3).saturate(3).hex() : Color(COLORS.WHITE).darken(0.75).desaturate(0.5).hex() };
-    transition: all 0.25s ease;
+  transition: all 0.25s ease;
 `
 
 export const UntouchabilityLayer = styled.div`
