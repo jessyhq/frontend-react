@@ -22,6 +22,8 @@ import { MdMoreVert, MdModeEdit, MdDelete } from 'react-icons/md'
 
 // Constants:
 import COLORS from '../../../styles/colors'
+import { generateRandomTaskName } from '../../../util/generateRandomTaskName'
+import { useInput } from '../../../hooks/use-input'
 
 
 d3Select.prototype.transition = d3Transition
@@ -36,8 +38,8 @@ export const Edge = styled.div`
   height: 100%;
 `
 
-export const OptionsEdge = styled(Edge)`
-  filter: opacity(0);
+export const OptionsEdge = styled(Edge)<{ shouldHideWhenNotHovering: boolean }>`
+  filter: ${ props => props.shouldHideWhenNotHovering ? 'opacity(0)' : 'opacity(1)' };
   transition: all 0.25s ease;
 `
 
@@ -141,6 +143,17 @@ export const Middle = styled.div`
 
 export const LineSVG = styled.svg`
   position: absolute;
+  z-index: -1;
+  max-width: 67%;
+`
+
+export const TitleInput = styled.input`
+  margin-left: -1%;
+  font-weight: 500;
+  font-size: 1rem;
+  background-color: transparent;
+  border: none;
+  outline: none;
 `
 
 export const Title = styled.div<{ isStrikethrough: boolean }>`
@@ -152,6 +165,21 @@ export const Title = styled.div<{ isStrikethrough: boolean }>`
   user-select: none;
   cursor: default;
   transition: all 0.25s ease;
+`
+
+export const DoneIcon = styled(ImCheckmark)<{ isvisible: string }>`
+  position: absolute;
+  margin-bottom: ${ props => props.isvisible === 'true' ? '0rem' : '-0.5rem' };
+  font-size: ${ props => props.isvisible === 'true' ? '1.25rem' : '0rem' };
+  color: ${ Color(COLORS.WHITE).darken(0.75).alpha(0.4).toString() };
+  user-select: none;
+  cursor: pointer;
+  transition: color 0.25s ease, margin 0.5s ease, font-size 0.5s ease;
+
+  &:hover {
+    color: lightseagreen;
+    transition: all 0.25s ease;
+  }
 `
 
 export const EditIcon = styled(MdModeEdit)<{ isvisible: string }>`
@@ -211,20 +239,27 @@ const TaskItem = (
     taskIndexBeingDragged?: number
   }) => {
   // Ref:
+  const middleRef = useRef<HTMLDivElement | null>(null)
   const lineSVGRef = useRef<SVGSVGElement | null>(null)
 
   // State:
   const [ isTaskDone, setIsTaskDone ] = useState(task.isDone)
+  const [ canToggleTaskDone, setCanToggleTaskDone ] = useState(true)
   const [ isTaskDeleted, setIsTaskDeleted ] = useState({ transitionSet: false, shouldTransition: false, transitioned: false })
   const [ scribble, setScribble ] = useState<undefined | any>()
-  const [ scribbleDimensions, setScribbleDimensions ] = useState({ width: getWidthOfText(task.title, 'Roboto', `${ 16 + (0.5 * 2) }px`), height: 10 })
+  const [ scribbleDimensions, setScribbleDimensions ] = useState({ width: 0, height: 0 })
   const [ scribblePathLength, setScribblePathLength ] = useState(0)
   const [ isScribbleDrawn, setIsScribbleDrawn ] = useState<{ current: boolean, previous: boolean | undefined }>({ current: false, previous: undefined })
+  const [ isEditing, setIsEditing ] = useState(false)
+  const { value: taskTitle, bind: bindTaskTitle } = useInput(task.title)
+  const [ oldTaskTitle, setOldTaskTitle ] = useState<string | undefined>(undefined)
+  const [ titlePlaceHolder, setTitlePlaceHolder ] = useState(generateRandomTaskName())
 
   // Functions:
-  const generateScribble = useCallback(() => {
+  const generateScribble = useCallback(({ width, height }: { width: number, height: number }) => {
     let pathLength: number
-    const points: [ number, number ][] = [ ...Array(scribbleDimensions.width / 5) ].map((_e, i) => [ i * 5, Math.floor(Math.random() * scribbleDimensions.height) ])
+    const points: [ number, number ][] =
+      [ ...Array( Math.min(width, middleRef.current?.getBoundingClientRect().width ?? 220) / 5) ].map((_e, i) => [ i * 5, Math.floor(Math.random() * height) ])
     const curve = d3Select(lineSVGRef.current)
       .selectAll('path')
       .data([points[points.length - 1]])
@@ -245,19 +280,29 @@ const TaskItem = (
             .attr('stroke-dashoffset', pathLength)
       )
     setScribble(curve)
-  }, [ scribbleDimensions.height, scribbleDimensions.width ])
+  }, [])
 
   // Effects:
-  useEffect(() => {
-    generateScribble()
-  }, [ generateScribble ])
+  // useEffect(() => {
+  //   const rawScribbleWidth = getWidthOfText(taskTitle, 'Roboto', `${ 16 + (0.5 * 2) }px`)
+  //   setScribbleDimensions({ width: Math.min(rawScribbleWidth, middleRef.current?.getBoundingClientRect().width ?? 220), height: 10 })
+  //   generateScribble({ width: Math.min(rawScribbleWidth, middleRef.current?.getBoundingClientRect().width ?? 220), height: 10 })
+  // }, [ generateScribble, taskTitle ])
 
   useEffect(() => {
-    setScribbleDimensions({ width: getWidthOfText(task.title, 'Roboto', `${ 16 + (0.5 * 2) }px`), height: 10 })
-  }, [ task.title ])
+    if (!isEditing && taskTitle !== oldTaskTitle) {
+      setOldTaskTitle(taskTitle)
+      setTitlePlaceHolder(generateRandomTaskName())
+      const rawScribbleWidth = getWidthOfText(taskTitle, 'Roboto', `${ 16 + (0.5 * 2) }px`)
+      setScribbleDimensions({ width: Math.min(rawScribbleWidth, middleRef.current?.getBoundingClientRect().width ?? 220), height: 10 })
+      if (scribble !== undefined) scribble.remove()
+      generateScribble({ width: Math.min(rawScribbleWidth, middleRef.current?.getBoundingClientRect().width ?? 220), height: 10 })
+    }
+  }, [ generateScribble, isEditing, oldTaskTitle, scribble, taskTitle ])
 
   useEffect(() => {
     if (isScribbleDrawn.current === true && isScribbleDrawn.previous === false && isTaskDone === false && scribble !== undefined) {
+      setCanToggleTaskDone(false);
       (async () => {
         playStrikeThrough()
         await scribble
@@ -267,10 +312,12 @@ const TaskItem = (
           .attr('stroke-dashoffset', scribblePathLength)
           .end()
         scribble.remove()
-        setIsScribbleDrawn({ current: false, previous: isScribbleDrawn.current })
-        generateScribble()
+        setIsScribbleDrawn({ current: false, previous: true })
+        generateScribble(scribbleDimensions)
+        setCanToggleTaskDone(true)
       })()
     } else if (isScribbleDrawn.current === false && isTaskDone === true && scribble !== undefined) {
+      setCanToggleTaskDone(false);
       (async () => {
         playStrikeThrough()
         await scribble
@@ -280,9 +327,10 @@ const TaskItem = (
           .attr('stroke-dashoffset', 0)
           .end()
         setIsScribbleDrawn({ current: true, previous: false })
+        setCanToggleTaskDone(true)
       })()
     }
-  }, [ generateScribble, isScribbleDrawn, isTaskDone, scribble, scribblePathLength ])
+  }, [ generateScribble, isScribbleDrawn, isTaskDone, scribble, scribbleDimensions, scribblePathLength ])
 
   useEffect(() => {
     if (isTaskDeleted.transitioned) {
@@ -344,25 +392,43 @@ const TaskItem = (
             <Checkbox
               isChecked={ isTaskDone }
               onClick={() => {
-                setIsTaskDone(!isTaskDone)
-                updateTaskDoneStatus(task._id, !isTaskDone)
+                if (!isEditing && canToggleTaskDone) {
+                  setIsTaskDone(!isTaskDone)
+                  updateTaskDoneStatus(task._id, !isTaskDone)
+                }
               }}
             >
               <CheckmarkIcon isvisible={ `${ isTaskDone }` } />
             </Checkbox>
           </Edge>
-          <Middle>
+          <Middle ref={ middleRef }>
             <LineSVG
               ref={ lineSVGRef }
               width={ scribbleDimensions.width + 5 }
               height={ scribbleDimensions.height * 2 }
-              viewBox={ `0 0 ${ scribbleDimensions.width - 5 } ${ scribbleDimensions.height }` }
+              viewBox={ `0 0 ${ scribbleDimensions.width - 5 > 0 ? scribbleDimensions.width - 5 : scribbleDimensions.width } ${ scribbleDimensions.height }` }
               preserveAspectRatio='xMidYMid meet'
             />
-            <Title isStrikethrough={ isTaskDone }>{ task.title }</Title>
+            {
+              isEditing ?
+                <TitleInput type='text' placeholder={ titlePlaceHolder } { ...bindTaskTitle } />
+              :
+                <Title isStrikethrough={ isTaskDone }>{ taskTitle }</Title>
+            }
           </Middle>
-          <OptionsEdge>
-            <EditIcon isvisible={ `${ !isTaskDone }` } />
+          <OptionsEdge shouldHideWhenNotHovering={ isEditing }>
+            {
+              isEditing ?
+                <DoneIcon isvisible={ `${ taskTitle.length > 0 }` } onClick={ () => setIsEditing(false) } />
+              :
+                <EditIcon isvisible={ `${ !isTaskDone }` } onClick={
+                    () => {
+                      setOldTaskTitle(taskTitle)
+                      setIsEditing(true)
+                    }
+                  }
+                />
+            }
             <DeleteIcon isvisible={ `${ isTaskDone }` } onClick={ () => setIsTaskDeleted({ ...isTaskDeleted, transitionSet: true }) } />
           </OptionsEdge>
           <BoxShadow style={{ boxShadow: snapshot.isDragging ? `0px 1px 10px -5px ${ Color(COLORS.WHITE).darken(0.25).hex() }` : '' }} />

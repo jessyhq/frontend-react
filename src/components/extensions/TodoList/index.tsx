@@ -235,10 +235,7 @@ const TodoList = () => {
             >
               <DragDropContext
                 onDragEnd={ onDragEnd }
-                onDragStart={(result) => {
-                  setTaskIndexBeingDragged(result.source.index)
-                  console.log(result.source.index)
-                }}
+                onDragStart={ result => { setTaskIndexBeingDragged(result.source.index) }}
               >
                 <Droppable droppableId='droppable'>
                   {(provided, snapshot) => (
