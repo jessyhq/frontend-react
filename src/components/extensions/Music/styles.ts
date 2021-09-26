@@ -16,7 +16,7 @@ export const Wrapper = styled.div`
   align-items: center;
   width: 35rem;
   height: 8rem;
-  /* margin: 0.75rem; */
+  margin: 0.75rem;
   padding: 1rem;
   padding-right: 0;
   background-color: ${ Color(COLORS.WHITE).darken(0.025).hex() };
@@ -54,7 +54,7 @@ export const Screen = styled.div`
   width: 290px;
   overflow: hidden;
   border-radius: 7.5px;
-  background: #000000;
+  background: ${ COLORS.BLACK };
 
   &::before {
     background-color: ${ Color(COLORS.BLACK).alpha(0.1).toString() };
