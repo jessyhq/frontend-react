@@ -57,7 +57,7 @@ const TaskItem = ({ index, task, updateTaskDoneStatus, deleteTask, taskIndexBein
   const [ scribbleDimensions, setScribbleDimensions ] = useState({ width: 0, height: 0 })
   const [ scribblePathLength, setScribblePathLength ] = useState(0)
   const [ isScribbleDrawn, setIsScribbleDrawn ] = useState<{ current: boolean, previous: boolean | undefined }>({ current: false, previous: undefined })
-  const [ isEditing, setIsEditing ] = useState(false)
+  const [ isEditing, setIsEditing ] = useState(task.title === '')
   const { value: taskTitle, bind: bindTaskTitle } = useInput(task.title)
   const [ oldTaskTitle, setOldTaskTitle ] = useState<string | undefined>(undefined)
   const [ titlePlaceHolder, setTitlePlaceHolder ] = useState(generateRandomTaskName())
@@ -223,7 +223,7 @@ const TaskItem = ({ index, task, updateTaskDoneStatus, deleteTask, taskIndexBein
             />
             {
               isEditing ?
-                <TitleInput type='text' placeholder={ titlePlaceHolder } { ...bindTaskTitle } />
+                <TitleInput type='text' placeholder={ titlePlaceHolder } { ...bindTaskTitle } autoFocus={ isEditing } />
               :
                 <Title isStrikethrough={ isTaskDone }>{ taskTitle }</Title>
             }

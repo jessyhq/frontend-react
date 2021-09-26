@@ -252,7 +252,7 @@ const TodoList = () => {
       time: {
         createdAt: Date.now()
       },
-      title: `Task #${ (Math.random() + 1).toString(36).substring(2) }`
+      title: ''
     })
     setTasks(newTasks)
     setTasksMetadata({ ...tasksMetadata, length: tasksMetadata.length + 1 })
