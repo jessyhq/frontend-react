@@ -16,7 +16,6 @@ export const Wrapper = styled.div`
   align-items: center;
   width: 35rem;
   height: 8rem;
-  margin: 0.75rem;
   padding: 1rem;
   padding-right: 0;
   background-color: ${ Color(COLORS.WHITE).darken(0.025).hex() };

@@ -17,7 +17,7 @@ export const Wrapper = styled.div`
   flex-direction: column;
   width: 25rem;
   height: 35rem;
-  margin: 0.75rem;
+  /* margin: 0.75rem; */
   padding: 1rem;
   padding-bottom: 0;
   background-color: ${ Color(COLORS.WHITE).darken(0.025).hex() };
