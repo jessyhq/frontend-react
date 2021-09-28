@@ -2,8 +2,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import Color from 'color'
-import GridLayout from 'react-grid-layout'
-
+import GridLayout, { WidthProvider } from 'react-grid-layout'
 
 // Constants:
 import COLORS from '../../styles/colors'
@@ -37,24 +36,28 @@ const Background = styled.div`
 
 
 // Functions:
+const GridLayoutWithWidth = WidthProvider(GridLayout)
+
 const App = () => {
   return (
       <Wrapper>
         <Background />
-        <GridLayout
+        <GridLayoutWithWidth
           className='layout'
           cols={ window.innerWidth / 16 }
           rowHeight={ 16 }
-          width={ window.innerWidth }
+          // width={ window.innerWidth }
           margin={[ 0, 0 ]}
           isResizable
           isBounded
           preventCollision
+          compactType={ null }
+          // onLayoutChange={ (layout) => console.log(layout) }
         >
           <div key='a' data-grid={{ x: 0, y: 0, w: 35 + 1, h: 8 + 2 }}><Music /></div>
           <div key='b' data-grid={{ x: 0, y: 0, w: 25 + 2, h: 35 + 1 }}><TodoList /></div>
-          <div key='c' data-grid={{ x: 35 + 1, y: 0, w: 25 + 2, h: 35 + 1, isBounded: true }}><TodoList /></div>
-        </GridLayout>
+          <div key='c' data-grid={{ x: 35 + 1, y: 0, w: 25 + 2, h: 35 + 1 }}><TodoList /></div>
+        </GridLayoutWithWidth>
       </Wrapper>
   )
 }
