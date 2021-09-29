@@ -44,19 +44,8 @@ import {
 // Functions:
 const TodoList = () => {
   // State:
-  const [ isOn, setIsOn ] = useState(false)
-  const [ tasks, setTasks ] = useState<TTask[]>(
-    [ ...Array(15) ].map((_e, i) => (
-      {
-      _id: i.toString(),
-      isDone: false,
-      time: {
-        createdAt: Date.now()
-      },
-      title: `Task #${ i }`
-      }
-    )
-  ))
+  const [ isOn, setIsOn ] = useState(true)
+  const [ tasks, setTasks ] = useState<TTask[]>([])
   const [ tasksMetadata, setTasksMetadata ] = useState({
     done: 0,
     length: tasks.length

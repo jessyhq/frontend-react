@@ -42,13 +42,13 @@ import {
 // Functions:
 const Music = () => {
   // State:
-  const [ isOn, setIsOn ] = useState(false)
+  const [ isOn, setIsOn ] = useState(true)
   const [ currentPlayer, setCurrentPlayer ] = useState<TPlayer>('SPOTIFY')
   const { value: URLValue, bind: bindURLValue, reset: resetURLValue } = useInput('')
   const [ playerURL, setPlayerURL ] = useState({
-    APPLE_MUSIC:'https://embed.music.apple.com/us/album/flirting-with-june/1386394845?i=1386394958',
-    SPOTIFY: 'https://open.spotify.com/embed/artist/4pwqNyMSvuv7VOhQBdjB6Q',
-    SOUNDCLOUD: 'thegubbinsjam/minecraft-wet-hands'
+    APPLE_MUSIC:'https://embed.music.apple.com/us/album/study-music-playlist-ultimate-studying-music-for-concentration/977417407',
+    SPOTIFY: 'https://open.spotify.com/embed/playlist/37i9dQZF1DX8NTLI2TtZa6',
+    SOUNDCLOUD: 'dabootlegboy/sets/study-chill-lofi-hiphop'
   })
 
   // Functions:

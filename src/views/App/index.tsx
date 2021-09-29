@@ -12,17 +12,14 @@ import COLORS from '../../styles/colors'
 // Components:
 import Music from '../../components/extensions/Music'
 import TodoList from '../../components/extensions/TodoList'
-import Timer from '../../components/extensions/Timer'
+// import Timer from '../../components/extensions/Timer'
 
 
 // Styles:
 const Wrapper = styled.div`
   position: absolute;
-  /* display: flex;
-  justify-content: center;
-  align-items: center; */
   width: 100vw;
-  height: 100vh;
+  height: 97vh;
 `
 
 const Background = styled.div`
@@ -31,12 +28,20 @@ const Background = styled.div`
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100vh;
+  height: 97vh;
   background-color: ${ COLORS.WHITE };
   opacity: 0.6;
   background-image: radial-gradient(${ Color(COLORS.BLACK).lighten(5).toString() } 1.15px, ${ COLORS.WHITE } 1.15px);
   background-size: 1.5rem 1.5rem;
   background-position: center;
+`
+
+const Footer = styled.div`
+  position: absolute;
+  bottom: 0;
+  width: 100vw;
+  height: 3vh;
+  background-color: ${ Color(COLORS.WHITE).darken(0.025).hex() };
 `
 
 
@@ -45,27 +50,37 @@ const GridLayoutWithWidth = WidthProvider(GridLayout)
 
 const App = () => {
   return (
-      <Wrapper>
-        <Background />
-        <GridLayoutWithWidth
-          className='layout'
-          cols={ window.innerWidth / 16 }
-          rowHeight={ 16 }
-          margin={[ 0, 0 ]}
-          isResizable
-          isBounded
-          preventCollision
-          compactType={ null }
-          // onLayoutChange={ layout => console.log(layout) }
-          draggableCancel='.draggableCancel'
-        >
-          <div key='a' data-grid={{ x: 84, y: 50, w: 35 + 1, h: 8 + 2 }}><Music /></div>
-          <div key='b' data-grid={{ x: 93, y: 0, w: 25 + 2, h: 35 + 1 }}><TodoList /></div>
-          <div key='c' data-grid={{ x: 66, y: 0, w: 25 + 2, h: 35 + 1 }}><TodoList /></div>
-          <div key='d' data-grid={{ x: 0, y: 0, w: 16 + 2, h: 8 + 2 }}><Timer /></div>
-        </GridLayoutWithWidth>
-        {/* <Timer /> */}
-      </Wrapper>
+    <>
+      {
+        window.innerWidth >= 1024 ?
+        <>
+          <Wrapper>
+            <Background />
+            <GridLayoutWithWidth
+              className='layout'
+              cols={ window.innerWidth / 16 }
+              rowHeight={ 16 }
+              margin={[ 0, 0 ]}
+              isResizable
+              isBounded
+              preventCollision
+              compactType={ null }
+              // onLayoutChange={ layout => console.log(layout) }
+              draggableCancel='.draggableCancel'
+            >
+              <div key='a' data-grid={{ x: 0, y: 48, w: 35 + 1, h: 8 + 2 }}><Music /></div>
+              <div key='b' data-grid={{ x: 27, y: 0, w: 25 + 2, h: 35 + 1 }}><TodoList /></div>
+              <div key='c' data-grid={{ x: 0, y: 0, w: 25 + 2, h: 35 + 1 }}><TodoList /></div>
+              {/* <div key='d' data-grid={{ x: 0, y: 0, w: 16 + 2, h: 8 + 2 }}><Timer /></div> */}
+            </GridLayoutWithWidth>
+          </Wrapper>
+          <Footer>
+          </Footer>
+        </>
+        :
+        <></>
+      }
+    </>
   )
 }
 
