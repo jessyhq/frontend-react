@@ -127,7 +127,7 @@ const TodoList = () => {
           {
             !isOn && <UntouchabilityLayer />
           }
-          <Screen isOn={ isOn }>
+          <Screen isOn={ isOn } className='draggableCancel'>
             <Scrollbars
               style={{ width: '100%', height: '100%' }}
               renderTrackHorizontal={ props => <div { ...props } style={{ display: 'none' }} className='track-horizontal' /> }
