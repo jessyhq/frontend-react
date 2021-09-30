@@ -23,7 +23,9 @@ import ROUTES from './routes/routes'
 
 // Components:
 import Navbar from './components/global/Navbar'
+import ContextMenu from './components/global/ContextMenu'
 import App from './views/App'
+import Footer from './components/global/Footer'
 
 
 // Styles:
@@ -67,6 +69,7 @@ ReactDOM.render(
       <Router>
         <GlobalStyle />
         <Navbar />
+        <ContextMenu />
         <Switch>
           <Route path={ ROUTES.INDEX } component={ App } />
           {/* <Route path={ ROUTES.REGISTER } component={ Register } /> */}
@@ -74,6 +77,7 @@ ReactDOM.render(
           {/* <Route path={ ROUTES.WEBSITE } component={ Website } /> */}
           {/* <Route path={ ROUTES.PROFILE } component={ Profile } /> */}
         </Switch>
+        <Footer />
       </Router>
     </Provider>
   </React.StrictMode>,

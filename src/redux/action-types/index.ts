@@ -1,2 +1,3 @@
 // Exports:
-export const TOGGLE_THEME = 'TOGGLE_THEME';
+export const UPDATE_GLOBAL = 'UPDATE_GLOBAL'
+export const UPDATE_FOOTER = 'UPDATE_FOOTER'

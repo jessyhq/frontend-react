@@ -1,14 +1,17 @@
 // Typescript:
-import { IToggleTheme } from './types'
+import {
+  IUpdateGlobal,
+  IUpdateFooter
+} from './types'
 
 
 // Constants:
 import {
-  TOGGLE_THEME
+  UPDATE_GLOBAL,
+  UPDATE_FOOTER
 } from '../action-types'
 
 
 // Exports:
-export const toggleTheme: IToggleTheme = (payload) => {
-  return { type: TOGGLE_THEME, payload }
-}
+export const updateGlobal: IUpdateGlobal = (payload) => ({ type: UPDATE_GLOBAL, payload })
+export const updateFooter: IUpdateFooter = (payload) => ({ type: UPDATE_FOOTER, payload })

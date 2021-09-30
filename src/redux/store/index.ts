@@ -1,6 +1,11 @@
-import { createStore } from "redux";
-import rootReducer from "../reducers/index";
+// Packages:
+import { createStore } from 'redux'
+import rootReducer from '../reducers/index'
 
-const store = createStore(rootReducer);
 
-export default store;
+// Constants:
+const store = createStore(rootReducer)
+
+
+// Exports:
+export default store

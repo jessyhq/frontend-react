@@ -36,14 +36,6 @@ const Background = styled.div`
   background-position: center;
 `
 
-const Footer = styled.div`
-  position: absolute;
-  bottom: 0;
-  width: 100vw;
-  height: 3vh;
-  background-color: ${ Color(COLORS.WHITE).darken(0.025).hex() };
-`
-
 
 // Functions:
 const GridLayoutWithWidth = WidthProvider(GridLayout)
@@ -53,30 +45,26 @@ const App = () => {
     <>
       {
         window.innerWidth >= 1024 ?
-        <>
-          <Wrapper>
-            <Background />
-            <GridLayoutWithWidth
-              className='layout'
-              cols={ window.innerWidth / 16 }
-              rowHeight={ 16 }
-              margin={[ 0, 0 ]}
-              isResizable
-              isBounded
-              preventCollision
-              compactType={ null }
-              // onLayoutChange={ layout => console.log(layout) }
-              draggableCancel='.draggableCancel'
-            >
-              <div key='a' data-grid={{ x: 0, y: 48, w: 35 + 1, h: 8 + 2 }}><Music /></div>
-              <div key='b' data-grid={{ x: 27, y: 0, w: 25 + 2, h: 35 + 1 }}><TodoList /></div>
-              <div key='c' data-grid={{ x: 0, y: 0, w: 25 + 2, h: 35 + 1 }}><TodoList /></div>
-              {/* <div key='d' data-grid={{ x: 0, y: 0, w: 16 + 2, h: 8 + 2 }}><Timer /></div> */}
-            </GridLayoutWithWidth>
-          </Wrapper>
-          <Footer>
-          </Footer>
-        </>
+        <Wrapper>
+          <Background />
+          <GridLayoutWithWidth
+            className='layout'
+            cols={ window.innerWidth / 16 }
+            rowHeight={ 16 }
+            margin={[ 0, 0 ]}
+            isResizable
+            isBounded
+            preventCollision
+            compactType={ null }
+            // onLayoutChange={ layout => console.log(layout) }
+            draggableCancel='.draggableCancel'
+          >
+            <div key='a' data-grid={{ x: 0, y: 48, w: 35 + 1, h: 8 + 2 }}><Music /></div>
+            <div key='b' data-grid={{ x: 27, y: 0, w: 25 + 2, h: 35 + 1 }}><TodoList /></div>
+            <div key='c' data-grid={{ x: 0, y: 0, w: 25 + 2, h: 35 + 1 }}><TodoList /></div>
+            {/* <div key='d' data-grid={{ x: 0, y: 0, w: 16 + 2, h: 8 + 2 }}><Timer /></div> */}
+          </GridLayoutWithWidth>
+        </Wrapper>
         :
         <></>
       }

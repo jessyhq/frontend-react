@@ -1,14 +1,22 @@
 // Typescript:
-import { TAction, TPayload } from '../actions/types'
+import { TActionType } from '../actions/types'
 import { TTHEME } from '../../styles/types'
 
 
 // Exports:
+export interface IStateGlobal {
+  theme: TTHEME
+}
+export interface IStateFooter {
+  bounds: null | DOMRectReadOnly
+}
+
 export interface IAction {
-  type: TAction
-  payload: TPayload
+  type: TActionType
+  payload: any
 }
 
 export interface IState {
-  theme: TTHEME
+  global: IStateGlobal
+  footer: IStateFooter
 }

@@ -4,26 +4,40 @@ import { IAction, IState } from './types'
 
 // Constants:
 import {
-  TOGGLE_THEME
+  UPDATE_GLOBAL, UPDATE_FOOTER
 } from '../action-types'
 import THEMES from '../../styles/themes'
 
 
 // Redux:
 const initialState : IState = {
-  theme: THEMES.LIGHT
+  global: {
+    theme: THEMES.LIGHT
+  },
+  footer: {
+    bounds: null
+  }
 }
 
 
 // Functions:
 const reducer = (state = initialState, action: IAction) => {
   switch (action.type) {
-    case TOGGLE_THEME:
+    case UPDATE_GLOBAL:
       return {
         ...state,
         global: {
+          ...state.global,
           theme: action.payload,
-        },
+        }
+      }
+    case UPDATE_FOOTER:
+      return {
+        ...state,
+        footer: {
+          ...state.footer,
+          ...action.payload
+        }
       }
     default:
       return state

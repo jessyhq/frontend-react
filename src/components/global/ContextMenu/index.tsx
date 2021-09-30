@@ -1,0 +1,85 @@
+// Packages:
+import React, { useRef, useState, useCallback, useEffect } from 'react'
+import styled from 'styled-components'
+import { useSelector } from 'react-redux'
+
+
+// Constants:
+import COLORS from '../../../styles/colors'
+import { SMOOTH_INNER_SHADOW, SMOOTH_SHADOW } from '../../../styles'
+
+
+// Redux:
+import { IState } from '../../../redux/reducers/types'
+
+
+// Styles:
+const Wrapper = styled.div<{ isShowing: boolean }>`
+  position: absolute;
+  z-index: 6000;
+  width: 12rem;
+  height: 15rem;
+  background-color: ${ COLORS.WHITE };
+  box-shadow: ${ SMOOTH_INNER_SHADOW }, ${ SMOOTH_SHADOW };
+  filter: ${ props=> props.isShowing ? 'opacity(1)' : 'opacity(0)'};
+  border-radius: 10px;
+  transition: filter 0.1s ease;
+`
+
+
+// Functions:
+const ContextMenu = () => {
+  // Ref:
+  const wrapperRef = useRef<any>(null)
+
+  // State:
+  const footerBounds = useSelector((state: IState) => state.footer.bounds)
+  const [ wrapperBounds, setWrapperBounds ] = useState<DOMRect | null>(null)
+  const [ anchorPoint, setAnchorPoint ] = useState({ X: 0, Y: 0 })
+  const [ isShowing, setIsShowing ] = useState(false)
+
+  // Functions:
+  const handleClick = useCallback(() => {
+    if (isShowing) setIsShowing(false)
+    setWrapperBounds(null)
+  }, [ isShowing ])
+
+  const handleContextMenu = useCallback((event: MouseEvent) => {
+    event.preventDefault()
+    setAnchorPoint({ X: event.pageX, Y: event.pageY })
+    setWrapperBounds(wrapperRef.current.getBoundingClientRect() as DOMRect)
+    if (!isShowing) setIsShowing(true)
+  }, [ isShowing ])
+
+  // Effects:
+  useEffect(() => {
+    document.addEventListener('click', handleClick)
+    document.addEventListener('contextmenu', handleContextMenu)
+    return () => {
+      document.removeEventListener('click', handleClick)
+      document.removeEventListener('contextmenu', handleContextMenu)
+    }
+  }, [ handleClick, handleContextMenu ])
+
+  useEffect(() => {
+    console.log(wrapperBounds)
+  }, [ wrapperBounds ])
+
+  // Return:
+  return (
+    <Wrapper
+      ref={ wrapperRef }
+      isShowing={ isShowing }
+      style={{
+        top: anchorPoint.Y,
+        left: anchorPoint.X
+      }}
+    >
+      
+    </Wrapper>
+  )
+}
+
+
+// Exports:
+export default ContextMenu
