@@ -14,7 +14,7 @@ import { IState } from '../../../redux/reducers/types'
 
 
 // Styles:
-const Wrapper = styled.div<{ isShowing: boolean }>`
+const Wrapper = styled.div<{ isShowing: boolean, invert: { X: boolean, Y: boolean } }>`
   position: absolute;
   z-index: 6000;
   width: 12rem;
@@ -23,7 +23,8 @@ const Wrapper = styled.div<{ isShowing: boolean }>`
   box-shadow: ${ SMOOTH_INNER_SHADOW }, ${ SMOOTH_SHADOW };
   filter: ${ props=> props.isShowing ? 'opacity(1)' : 'opacity(0)'};
   border-radius: 10px;
-  transition: filter 0.1s ease;
+  transform: ${ props => 'translate(' + (props.invert.X ? '-12.25rem, ' : '0.25rem, ') + (props.invert.Y ? '-15.25rem' : '0.25rem') + ')'  };
+  transition: filter 0.25s ease;
 `
 
 
@@ -44,8 +45,13 @@ const ContextMenu = () => {
     setWrapperBounds(null)
   }, [ isShowing ])
 
-  const handleContextMenu = useCallback((event: MouseEvent) => {
+  const handleContextMenu = useCallback(async (event: MouseEvent) => {
     event.preventDefault()
+    if (isShowing) {
+      setIsShowing(false)
+      await new Promise(resolve => setTimeout(resolve, 250))
+      setIsShowing(true)
+    }
     setAnchorPoint({ X: event.pageX, Y: event.pageY })
     setWrapperBounds(wrapperRef.current.getBoundingClientRect() as DOMRect)
     if (!isShowing) setIsShowing(true)
@@ -73,6 +79,10 @@ const ContextMenu = () => {
       style={{
         top: anchorPoint.Y,
         left: anchorPoint.X
+      }}
+      invert={{
+        X: anchorPoint.X + (wrapperBounds?.width ?? -1) > (footerBounds?.right ?? 0),
+        Y: anchorPoint.Y + (wrapperBounds?.height ?? -1) > (footerBounds?.top ?? 0)
       }}
     >
       
