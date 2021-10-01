@@ -4,9 +4,12 @@ import { TTHEME } from '../../styles/types'
 
 
 // Exports:
+export interface IContextTarget {
+  [ key: string ]: boolean
+}
 export interface IStateGlobal {
   theme: TTHEME
-  contextTarget: undefined | string
+  contextTarget: IContextTarget
 }
 export interface IStateFooter {
   bounds: null | DOMRectReadOnly

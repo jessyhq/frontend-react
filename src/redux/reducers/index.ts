@@ -4,7 +4,7 @@ import { IAction, IState } from './types'
 
 // Constants:
 import {
-  UPDATE_GLOBAL, UPDATE_FOOTER
+  UPDATE_GLOBAL, UPDATE_FOOTER, UPDATE_CONTEXT_TARGET
 } from '../action-types'
 import THEMES from '../../styles/themes'
 
@@ -13,7 +13,7 @@ import THEMES from '../../styles/themes'
 const initialState : IState = {
   global: {
     theme: THEMES.LIGHT,
-    contextTarget: undefined
+    contextTarget: {}
   },
   footer: {
     bounds: null
@@ -38,6 +38,17 @@ const reducer = (state = initialState, action: IAction) => {
         footer: {
           ...state.footer,
           ...action.payload
+        }
+      }
+    case UPDATE_CONTEXT_TARGET:
+      return {
+        ...state,
+        global: {
+          ...state.global,
+          contextTarget: {
+            ...state.global.contextTarget,
+            ...action.payload
+          }
         }
       }
     default:

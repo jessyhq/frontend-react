@@ -78,7 +78,7 @@ const App = () => {
             draggableCancel='.draggableCancel'
           >
             {
-              extensions.map(extension => <span key={ extension._id } >{ EXTENSION[ extension.type ].component() }</span>)
+              extensions.map(extension => <span key={ extension._id } >{ EXTENSION[ extension.type ].component({ _id: extension._id }) }</span>)
             }
           </GridLayoutWithWidth>
         </Wrapper>

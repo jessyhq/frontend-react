@@ -70,7 +70,7 @@ const Knob = styled.div`
 
 
 // Functions:
-const Timer = () => {
+const Timer = ({ _id }: { _id: string }) => {
   // Ref:
   const handleRef = useRef<any>(null)
 

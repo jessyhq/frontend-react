@@ -8,7 +8,7 @@ import Timer from '../../components/extensions/Timer'
 interface IExtension {
   [ key: string ]: {
     type: string
-    component: () => JSX.Element
+    component: ({ _id }: { _id: string }) => JSX.Element
   }
 }
 

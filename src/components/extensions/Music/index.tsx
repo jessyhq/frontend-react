@@ -1,5 +1,7 @@
 // Packages:
 import React, { useState, useCallback } from 'react'
+import useOuterContextMenu from '../../../hooks/use-outer-context-menu'
+import { useDispatch, useSelector } from 'react-redux'
 import { useInput } from '../../../hooks/use-input'
 import { customSplice } from '../../../util/customSplice'
 import isUrl from 'is-url'
@@ -7,6 +9,7 @@ import { playButtonPress } from '../../../util/soundEffects'
 
 
 // Typescript:
+import { IState } from '../../../redux/reducers/types'
 import { TPlayer } from './types'
 
 
@@ -17,6 +20,10 @@ import { RiSpotifyFill, RiAppleFill, RiSoundcloudFill } from 'react-icons/ri'
 
 // Constants:
 import { PLAYER_TYPE } from '../../../constants/extensions/Music'
+
+
+// Redux:
+import { updateContextTarget } from '../../../redux/actions'
 
 
 // Styles:
@@ -40,8 +47,17 @@ import {
 
 
 // Functions:
-const Music = () => {
+const Music = ({ _id }: { _id: string }) => {
+  // Constants:
+  const dispatch = useDispatch()
+
+  // Ref:
+  const wrapperRef = useOuterContextMenu((e) => {
+    if (contextTarget[ _id ] === true) dispatch(updateContextTarget({ [_id ]: false }))
+  })
+
   // State:
+  const contextTarget = useSelector((state: IState) => state.global.contextTarget)
   const [ isOn, setIsOn ] = useState(true)
   const [ currentPlayer, setCurrentPlayer ] = useState<TPlayer>('SPOTIFY')
   const { value: URLValue, bind: bindURLValue, reset: resetURLValue } = useInput('')
@@ -70,7 +86,10 @@ const Music = () => {
 
   // Return:
   return (
-    <Wrapper>
+    <Wrapper
+      ref={ wrapperRef }
+      onContextMenu={() => { if (!contextTarget[ _id ]) dispatch(updateContextTarget({ [ _id ]: true })) }}
+    >
       <InnerContainer className='draggableCancel'>
         <Screen>
           { !isOn && <ScreenText>OFF</ScreenText> }

@@ -4,13 +4,13 @@ import styled from 'styled-components'
 import { useSelector } from 'react-redux'
 
 
+// Typescript:
+import { IState } from '../../../redux/reducers/types'
+
+
 // Constants:
 import COLORS from '../../../styles/colors'
 import { SMOOTH_INNER_SHADOW, SMOOTH_SHADOW } from '../../../styles'
-
-
-// Redux:
-import { IState } from '../../../redux/reducers/types'
 
 
 // Styles:
@@ -33,6 +33,7 @@ const ContextMenu = () => {
   const wrapperRef = useRef<any>(null)
 
   // State:
+  const contextTarget = useSelector((state: IState) => state.global.contextTarget)
   const footerBounds = useSelector((state: IState) => state.footer.bounds)
   const [ wrapperBounds, setWrapperBounds ] = useState<DOMRect | null>(null)
   const [ anchorPoint, setAnchorPoint ] = useState({ X: 0, Y: 0 })

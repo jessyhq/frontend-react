@@ -1,11 +1,14 @@
 // Packages:
 import React, { useState, useCallback, useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import useOuterContextMenu from '../../../hooks/use-outer-context-menu'
 import { Scrollbars } from 'react-custom-scrollbars-2'
 import { playButtonPress } from '../../../util/soundEffects'
 import { DragDropContext, Droppable } from 'react-beautiful-dnd'
 
 
 // Typescript:
+import { IState } from '../../../redux/reducers/types'
 import { TTask } from '../../../types/taskItem'
 
 
@@ -16,6 +19,10 @@ import { MdPowerSettingsNew } from 'react-icons/md'
 // Components:
 import TaskItem from '../../global/TaskItem'
 import LCDScreen from '../../global/LCDScreen'
+
+
+// Redux:
+import { updateContextTarget } from '../../../redux/actions'
 
 
 // Styles:
@@ -40,10 +47,18 @@ import {
 } from './styles'
 
 
-
 // Functions:
-const TodoList = () => {
+const TodoList = ({ _id }: { _id: string }) => {
+  // Constants:
+  const dispatch = useDispatch()
+  
+  // Ref:
+  const wrapperRef = useOuterContextMenu((e) => {
+    if (contextTarget[ _id ] === true) dispatch(updateContextTarget({ [_id ]: false }))
+  })
+
   // State:
+  const contextTarget = useSelector((state: IState) => state.global.contextTarget)
   const [ isOn, setIsOn ] = useState(true)
   const [ tasks, setTasks ] = useState<TTask[]>([])
   const [ tasksMetadata, setTasksMetadata ] = useState({
@@ -110,7 +125,10 @@ const TodoList = () => {
 
   // Return:
   return (
-    <Wrapper>
+    <Wrapper
+      ref={ wrapperRef }
+      onContextMenu={() => { if (!contextTarget[ _id ]) dispatch(updateContextTarget({ [ _id ]: true })) }}
+    >
       <InnerContainer className='draggableCancel'>
         <ScreenContainer isOn={ isOn }>
           {
