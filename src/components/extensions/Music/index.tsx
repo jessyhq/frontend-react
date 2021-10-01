@@ -71,7 +71,7 @@ const Music = () => {
   // Return:
   return (
     <Wrapper>
-      <InnerContainer>
+      <InnerContainer className='draggableCancel'>
         <Screen>
           { !isOn && <ScreenText>OFF</ScreenText> }
           { isOn && <ScreenText>LOADING..</ScreenText> }

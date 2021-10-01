@@ -23,6 +23,7 @@ export const Wrapper = styled.div`
   background-color: ${ Color(COLORS.WHITE).darken(0.025).hex() };
   border-radius: 10px;
   box-shadow: ${ SMOOTH_INNER_SHADOW };
+  cursor: grab;
   
   &::before {
     content: '';
@@ -48,6 +49,7 @@ export const InnerContainer = styled.div`
   border-radius: 10px;
   box-shadow: inset 0px 0px 5px -1px ${ Color(COLORS.WHITE).darken(0.5).hex() }, 0px 0px 5px 0px ${ Color(COLORS.WHITE).darken(0.25).hex() };
   background-color: ${ Color(COLORS.BLACK).lighten(1).hex() };
+  cursor: default;
 `
 
 export const ScreenContainer = styled.div<{ isOn: boolean }>`
@@ -162,5 +164,4 @@ export const Name = styled.div`
   font-size: 1.1rem;
   color: ${ Color(COLORS.WHITE).darken(0.3).hex() };
   user-select: none;
-  cursor: default;
 `

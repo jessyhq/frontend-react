@@ -21,6 +21,7 @@ export const Wrapper = styled.div`
   background-color: ${ Color(COLORS.WHITE).darken(0.025).hex() };
   border-radius: 10px;
   box-shadow: ${ SMOOTH_INNER_SHADOW };
+  cursor: grab;
 
   &::before {
     content: '';
@@ -43,6 +44,7 @@ export const InnerContainer = styled.div`
   padding-right: 0.2rem;
   border-radius: 10px;
   background-color: ${ Color(COLORS.BLACK).lighten(1).hex() };
+  cursor: default;
 `
 
 export const Screen = styled.div`
@@ -111,6 +113,11 @@ export const OuterEdge = styled.div`
   height: 95%;
   margin: 0 2.5%;
   border-radius: 10px;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing !important;
+  }
 `
 
 export const Name = styled.div`
@@ -121,7 +128,6 @@ export const Name = styled.div`
   color: ${ Color(COLORS.WHITE).darken(0.3).hex() };
   transform: rotate(180deg);
   user-select: none;
-  cursor: default;
 `
 
 export const SpeakerGrill = styled.div`
@@ -132,5 +138,4 @@ export const SpeakerGrill = styled.div`
   letter-spacing: 1px;
   color: ${ Color(COLORS.WHITE).darken(0.6).hex() };
   user-select: none;
-  cursor: default;
 `

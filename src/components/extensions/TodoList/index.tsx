@@ -111,12 +111,12 @@ const TodoList = () => {
   // Return:
   return (
     <Wrapper>
-      <InnerContainer>
+      <InnerContainer className='draggableCancel'>
         <ScreenContainer isOn={ isOn }>
           {
             !isOn && <UntouchabilityLayer />
           }
-          <Screen isOn={ isOn } className='draggableCancel'>
+          <Screen isOn={ isOn }>
             <Scrollbars
               style={{ width: '100%', height: '100%' }}
               renderTrackHorizontal={ props => <div { ...props } style={{ display: 'none' }} className='track-horizontal' /> }
