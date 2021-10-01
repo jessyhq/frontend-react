@@ -12,7 +12,8 @@ import THEMES from '../../styles/themes'
 // Redux:
 const initialState : IState = {
   global: {
-    theme: THEMES.LIGHT
+    theme: THEMES.LIGHT,
+    contextTarget: undefined
   },
   footer: {
     bounds: null
@@ -28,7 +29,7 @@ const reducer = (state = initialState, action: IAction) => {
         ...state,
         global: {
           ...state.global,
-          theme: action.payload,
+          ...action.payload
         }
       }
     case UPDATE_FOOTER:
