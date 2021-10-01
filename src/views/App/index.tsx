@@ -1,5 +1,5 @@
 // Packages:
-import React from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components'
 import Color from 'color'
 import GridLayout, { WidthProvider } from 'react-grid-layout'
@@ -7,12 +7,7 @@ import GridLayout, { WidthProvider } from 'react-grid-layout'
 
 // Constants:
 import COLORS from '../../styles/colors'
-
-
-// Components:
-import Music from '../../components/extensions/Music'
-import TodoList from '../../components/extensions/TodoList'
-// import Timer from '../../components/extensions/Timer'
+import { EXTENSION } from '../../constants/extensions'
 
 
 // Styles:
@@ -41,6 +36,28 @@ const Background = styled.div`
 const GridLayoutWithWidth = WidthProvider(GridLayout)
 
 const App = () => {
+  // Experimental Constants:
+  const [ extensions, setExtensions ] = useState([
+    {
+      _id: 'some-id-1',
+      type: EXTENSION.MUSIC.type
+    },
+    {
+      _id: 'some-id-2',
+      type: EXTENSION.TODO_LIST.type
+    },
+    {
+      _id: 'some-id-3',
+      type: EXTENSION.TODO_LIST.type
+    }
+  ])
+  const [ layout, setLayout ] = useState<GridLayout.Layout[]>([
+    { i: 'some-id-1', x: 0, y: 48, w: 35 + 1, h: 8 + 2 },
+    { i: 'some-id-2', x: 27, y: 0, w: 25 + 2, h: 35 + 1 },
+    { i: 'some-id-3', x: 0, y: 0, w: 25 + 2, h: 35 + 1 }
+  ])
+
+  // Return:
   return (
     <>
       {
@@ -56,13 +73,13 @@ const App = () => {
             isBounded
             preventCollision
             compactType={ null }
-            // onLayoutChange={ layout => console.log(layout) }
+            layout={ layout }
+            onLayoutChange={ layout => setLayout(layout) }
             draggableCancel='.draggableCancel'
           >
-            <div key='a' data-grid={{ x: 0, y: 48, w: 35 + 1, h: 8 + 2 }}><Music /></div>
-            <div key='b' data-grid={{ x: 27, y: 0, w: 25 + 2, h: 35 + 1 }}><TodoList /></div>
-            <div key='c' data-grid={{ x: 0, y: 0, w: 25 + 2, h: 35 + 1 }}><TodoList /></div>
-            {/* <div key='d' data-grid={{ x: 0, y: 0, w: 16 + 2, h: 8 + 2 }}><Timer /></div> */}
+            {
+              extensions.map(extension => <span key={ extension._id } >{ EXTENSION[ extension.type ].component() }</span>)
+            }
           </GridLayoutWithWidth>
         </Wrapper>
         :

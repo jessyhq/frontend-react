@@ -17,6 +17,7 @@
     "d3-transition": "^3.0.1",
     "date-and-time": "^1.0.0",
     "firebase": "^9.1.0",
+    "idb": "^3.0.2",
     "is-url": "^1.2.4",
     "react": "^17.0.2",
     "react-beautiful-dnd": "^13.1.0",
