@@ -8,18 +8,18 @@ import { IStateFooter, IStateGlobal } from '../reducers/types'
 
 // Exports:
 export interface IUpdateGlobal {
-  (payload: IStateGlobal): {
+  (payload: Partial<IStateGlobal>): {
     type: typeof UPDATE_GLOBAL
-    payload: IStateGlobal
+    payload: Partial<IStateGlobal>
   }
 }
 
 export interface IUpdateFooter {
-  (payload: IStateFooter): {
+  (payload: Partial<IStateFooter>): {
     type: typeof UPDATE_FOOTER
-    payload: IStateFooter
+    payload: Partial<IStateFooter>
   }
 }
 
 export type TActionType = typeof UPDATE_GLOBAL | typeof UPDATE_FOOTER
-export interface IActionPayload extends IStateGlobal, IStateFooter {}
+export interface IActionPayload extends Partial<IStateGlobal>, Partial<IStateFooter> {}

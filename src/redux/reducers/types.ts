@@ -6,6 +6,7 @@ import { TTHEME } from '../../styles/types'
 // Exports:
 export interface IStateGlobal {
   theme: TTHEME
+  contextTarget: undefined | string
 }
 export interface IStateFooter {
   bounds: null | DOMRectReadOnly
