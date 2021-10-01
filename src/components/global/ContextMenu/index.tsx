@@ -16,7 +16,6 @@ import { IState } from '../../../redux/reducers/types'
 // Styles:
 const Wrapper = styled.div<{ isShowing: boolean, invert: { X: boolean, Y: boolean } }>`
   position: absolute;
-  z-index: 6000;
   width: 12rem;
   height: 15rem;
   background-color: ${ COLORS.WHITE };
@@ -38,12 +37,17 @@ const ContextMenu = () => {
   const [ wrapperBounds, setWrapperBounds ] = useState<DOMRect | null>(null)
   const [ anchorPoint, setAnchorPoint ] = useState({ X: 0, Y: 0 })
   const [ isShowing, setIsShowing ] = useState(false)
+  const [ zIndex, setZIndex ] = useState(-1)
 
   // Functions:
-  const handleClick = useCallback(() => {
+  const handleClick = useCallback(async () => {
     if (isShowing) setIsShowing(false)
+    if (zIndex === 6000) {
+      await new Promise(resolve => setTimeout(resolve, 250))
+      setZIndex(-1)
+    }
     setWrapperBounds(null)
-  }, [ isShowing ])
+  }, [ isShowing, zIndex ])
 
   const handleContextMenu = useCallback(async (event: MouseEvent) => {
     event.preventDefault()
@@ -51,25 +55,23 @@ const ContextMenu = () => {
       setIsShowing(false)
       await new Promise(resolve => setTimeout(resolve, 250))
       setIsShowing(true)
-    }
+    } if (zIndex === -1) setZIndex(6000) 
     setAnchorPoint({ X: event.pageX, Y: event.pageY })
     setWrapperBounds(wrapperRef.current.getBoundingClientRect() as DOMRect)
     if (!isShowing) setIsShowing(true)
-  }, [ isShowing ])
+  }, [ isShowing, zIndex ])
 
   // Effects:
   useEffect(() => {
     document.addEventListener('click', handleClick)
     document.addEventListener('contextmenu', handleContextMenu)
+    window.addEventListener('blur', handleClick)
     return () => {
       document.removeEventListener('click', handleClick)
       document.removeEventListener('contextmenu', handleContextMenu)
+      window.removeEventListener('blur', handleClick)
     }
   }, [ handleClick, handleContextMenu ])
-
-  useEffect(() => {
-    console.log(wrapperBounds)
-  }, [ wrapperBounds ])
 
   // Return:
   return (
@@ -78,7 +80,8 @@ const ContextMenu = () => {
       isShowing={ isShowing }
       style={{
         top: anchorPoint.Y,
-        left: anchorPoint.X
+        left: anchorPoint.X,
+        zIndex: zIndex
       }}
       invert={{
         X: anchorPoint.X + (wrapperBounds?.width ?? -1) > (footerBounds?.right ?? 0),
