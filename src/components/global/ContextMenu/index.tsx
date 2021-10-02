@@ -60,6 +60,7 @@ export const LastEdit = styled.div`
   padding: 1rem 1rem;
   font-size: 0.8rem;
   color: ${ Color(COLORS.WHITE).darken(0.5).toString() };
+  user-select: none;
 `
 
 
