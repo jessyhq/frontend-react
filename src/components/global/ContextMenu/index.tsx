@@ -49,7 +49,7 @@ export const Option = styled.div<{ clickable: boolean }>`
   transition: all 0.25s ease;
 
   &:hover {
-    background-color: ${ props => props.clickable ? COLORS.PRIMARY : 'transparent' };
+    background-color: ${ props => props.clickable ? Color(COLORS.WHITE).darken(0.03).toString() : 'transparent' };
     transition: all 0.25s ease;
   }
 `
@@ -81,7 +81,7 @@ const ContextMenu = () => {
   const [ isFocusedOnExtension, setIsFocusedOnExtension ] = useState(false)
 
   // Functions:
-  const handleClick = useCallback(async () => {
+  const closeMenu = useCallback(async () => {
     setIsAlreadyActive(false)
     setIsShowing(false)
     if (zIndex === 6000) {
@@ -91,6 +91,11 @@ const ContextMenu = () => {
     }
     setWrapperBounds(null)
   }, [ zIndex ])
+
+  const handleClick = useCallback(async (event: MouseEvent) => {
+    if (wrapperRef.current.contains(event.target)) return
+    closeMenu()
+  }, [ closeMenu ])
 
   const handleContextMenu = useCallback(async (event: MouseEvent) => {
     event.preventDefault()
@@ -109,11 +114,11 @@ const ContextMenu = () => {
   useEffect(() => {
     document.addEventListener('click', handleClick)
     document.addEventListener('contextmenu', handleContextMenu)
-    window.addEventListener('blur', handleClick)
+    window.addEventListener('blur', () => handleClick)
     return () => {
       document.removeEventListener('click', handleClick)
       document.removeEventListener('contextmenu', handleContextMenu)
-      window.removeEventListener('blur', handleClick)
+      window.removeEventListener('blur', () => handleClick)
     }
   }, [ handleClick, handleContextMenu ])
 
@@ -147,8 +152,8 @@ const ContextMenu = () => {
       {
         isFocusedOnExtension ?
         <>
-          <Option style={{ borderRadius: '5px 5px 0 0' }} clickable={ true }>
-            <MdContentCopy style={{ marginRight: '0.5rem', marginBottom: '-0.1rem', fontSize: '1rem' }} />Clone this extension
+          <Option style={{ borderRadius: '5px 5px 0 0' }} clickable={ false }>
+            <MdContentCopy style={{ marginRight: '0.5rem', marginBottom: '-0.1rem', fontSize: '1rem' }} />Clone
           </Option>
           <Option clickable={ true }>
             <AiOutlineDelete style={{ marginRight: '0.5rem', marginBottom: '-0.1rem', fontSize: '1rem' }} />
@@ -157,7 +162,7 @@ const ContextMenu = () => {
         </>
         :
         <>
-          <Option style={{ borderRadius: '5px 5px 0 0' }} clickable={ true }>
+          <Option style={{ borderRadius: '5px 5px 0 0' }} clickable={ false }>
             <IoAddCircleOutline style={{ marginRight: '0.5rem', marginBottom: '-0.1rem', fontSize: '1rem' }} />
             Add an extension
           </Option>
