@@ -231,7 +231,7 @@ const TaskItem = ({ index, task, updateTaskDoneStatus, deleteTask, taskIndexBein
           <OptionsEdge shouldHideWhenNotHovering={ isEditing }>
             {
               isEditing ?
-                <DoneIcon isvisible={ `${ taskTitle.length > 0 }` } onClick={ () => setIsEditing(false) } />
+                <DoneIcon isvisible={ `${ taskTitle.length > 0 }` } onClick={ () => taskTitle.length > 0 ? setIsEditing(false) : null } />
               :
                 <EditIcon isvisible={ `${ !isTaskDone }` } onClick={
                     () => {

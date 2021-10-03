@@ -182,7 +182,7 @@ export const DoneIcon = styled(ImCheckmark)<{ isvisible: string }>`
   filter: ${ props => props.isvisible === 'true' ? 'opacity(1)' : 'opacity(0)' };
   transform: ${ props => props.isvisible === 'true' ? 'scale(1)' : 'scale(0.8)' };
   user-select: none;
-  cursor: pointer;
+  cursor: ${ props => props.isvisible === 'true' ? 'pointer' : 'default' };
   transition: all 0.25s ease;
 
   &:hover {
