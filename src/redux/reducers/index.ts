@@ -4,7 +4,10 @@ import { IAction, IState } from './types'
 
 // Constants:
 import {
-  UPDATE_GLOBAL, UPDATE_FOOTER, UPDATE_CONTEXT_TARGET
+  UPDATE_GLOBAL,
+  UPDATE_FOOTER,
+  UPDATE_CONTEXT_TARGET,
+  UPDATE_LOCAL_STORAGE_DB
 } from '../action-types'
 import THEMES from '../../styles/themes'
 
@@ -13,7 +16,13 @@ import THEMES from '../../styles/themes'
 const initialState : IState = {
   global: {
     theme: THEMES.LIGHT,
-    contextTarget: {}
+    contextTarget: {},
+    localStorageDb: {
+      isFirstTime: false,
+      db: null,
+      extensions: [],
+      layout: []
+    }
   },
   footer: {
     bounds: null
@@ -47,6 +56,17 @@ const reducer = (state = initialState, action: IAction) => {
           ...state.global,
           contextTarget: {
             ...state.global.contextTarget,
+            ...action.payload
+          }
+        }
+      }
+    case UPDATE_LOCAL_STORAGE_DB:
+      return {
+        ...state,
+        global: {
+          ...state.global,
+          localStorageDb: {
+            ...state.global.localStorageDb,
             ...action.payload
           }
         }

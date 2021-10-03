@@ -2,7 +2,7 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react'
 import styled from 'styled-components'
 import Color from 'color'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useDebounce } from 'react-use'
 import dateFormat from 'dateformat'
 
@@ -19,6 +19,10 @@ import { IoAddCircleOutline } from 'react-icons/io5'
 
 // Constants:
 import COLORS from '../../../styles/colors'
+
+
+// Redux:
+import { updateLocalStorageDb } from '../../../redux/actions'
 
 
 // Styles:
@@ -66,15 +70,19 @@ export const LastEdit = styled.div`
 
 // Functions:
 const ContextMenu = () => {
+  // Constants:
+  const dispatch = useDispatch()
+
   // Ref:
   const wrapperRef = useRef<any>(null)
 
   // State:
   const contextTarget = useSelector((state: IState) => state.global.contextTarget)
+  const localStorageDb = useSelector((state: IState) => state.global.localStorageDb)
   const footerBounds = useSelector((state: IState) => state.footer.bounds)
   const [ wrapperBounds, setWrapperBounds ] = useState<DOMRect | null>(null)
   const [ anchorPoint, setAnchorPoint ] = useState({ X: 0, Y: 0 })
-  const [ isAlreadyActive, setIsAlreadyActive ] = useState(true)
+  const [ isAlreadyActive, setIsAlreadyActive ] = useState(false)
   const [ isShowing, setIsShowing ] = useState(false)
   const [ zIndex, setZIndex ] = useState(-1)
   const [ focusedExtensionID, setFocusedExtensionID ] = useState<string | null>(null)
@@ -109,6 +117,14 @@ const ContextMenu = () => {
     setWrapperBounds(wrapperRef.current.getBoundingClientRect() as DOMRect)
     if (!isShowing) setIsShowing(true)
   }, [ isShowing, zIndex ])
+
+  const deleteExtension = useCallback(() => {
+    const [ currentExtensions, currentLayout ] = [ localStorageDb.extensions, localStorageDb.layout ]
+    currentExtensions.splice(currentExtensions.findIndex(extension => extension._id === focusedExtensionID), 1)
+    currentLayout.splice(currentLayout.findIndex(layout => layout.i === focusedExtensionID), 1)
+    dispatch(updateLocalStorageDb({ extensions: currentExtensions, layout: currentLayout }))
+    closeMenu()
+  }, [ closeMenu, dispatch, focusedExtensionID, localStorageDb.extensions, localStorageDb.layout ])
 
   // Effects:
   useEffect(() => {
@@ -153,9 +169,10 @@ const ContextMenu = () => {
         isFocusedOnExtension ?
         <>
           <Option style={{ borderRadius: '5px 5px 0 0' }} clickable={ false }>
-            <MdContentCopy style={{ marginRight: '0.5rem', marginBottom: '-0.1rem', fontSize: '1rem' }} />Clone
+            <MdContentCopy style={{ marginRight: '0.5rem', marginBottom: '-0.1rem', fontSize: '1rem' }} />
+            Clone
           </Option>
-          <Option clickable={ true }>
+          <Option clickable={ true } onClick={ deleteExtension }>
             <AiOutlineDelete style={{ marginRight: '0.5rem', marginBottom: '-0.1rem', fontSize: '1rem' }} />
             Delete
           </Option>
@@ -166,7 +183,9 @@ const ContextMenu = () => {
             <IoAddCircleOutline style={{ marginRight: '0.5rem', marginBottom: '-0.1rem', fontSize: '1rem' }} />
             Add an extension
           </Option>
-          <Option clickable={ false }>Show stats</Option>
+          <Option clickable={ false }>
+            Show stats
+          </Option>
         </>
       }
       <LastEdit>

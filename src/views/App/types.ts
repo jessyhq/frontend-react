@@ -13,7 +13,7 @@ export interface IExtension {
   type: typeof EXTENSION_TYPE.MUSIC | typeof EXTENSION_TYPE.TODO_LIST
 }
 
-export interface IJessyLocalStorageDb {
+export interface ILocalStorageDb {
   isFirstTime: boolean
   db: DB | null
   extensions: IExtension[]

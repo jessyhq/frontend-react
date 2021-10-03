@@ -1,6 +1,7 @@
 // Typescript:
 import { TActionType } from '../actions/types'
 import { TTHEME } from '../../styles/types'
+import { ILocalStorageDb } from '../../views/App/types'
 
 
 // Exports:
@@ -10,6 +11,7 @@ export interface IContextTarget {
 export interface IStateGlobal {
   theme: TTHEME
   contextTarget: IContextTarget
+  localStorageDb: ILocalStorageDb
 }
 export interface IStateFooter {
   bounds: null | DOMRectReadOnly

@@ -1,8 +1,10 @@
 // Typescript:
+import { ILocalStorageDb } from '../../views/App/types'
 import {
   UPDATE_GLOBAL,
   UPDATE_FOOTER,
-  UPDATE_CONTEXT_TARGET
+  UPDATE_CONTEXT_TARGET,
+  UPDATE_LOCAL_STORAGE_DB
 } from '../action-types'
 import { IContextTarget, IStateFooter, IStateGlobal } from '../reducers/types'
 
@@ -29,5 +31,10 @@ export interface IUpdateContextTarget {
   }
 }
 
-export type TActionType = typeof UPDATE_GLOBAL | typeof UPDATE_FOOTER | typeof UPDATE_CONTEXT_TARGET
-export type IActionPayload = Partial<IStateGlobal> | Partial<IStateFooter> | Partial<IContextTarget>
+export interface IDispatchLocalStorageDb {
+  type: typeof UPDATE_LOCAL_STORAGE_DB
+  payload: Partial<ILocalStorageDb>
+}
+
+export type TActionType = typeof UPDATE_GLOBAL | typeof UPDATE_FOOTER | typeof UPDATE_CONTEXT_TARGET | typeof UPDATE_LOCAL_STORAGE_DB
+export type IActionPayload = Partial<IStateGlobal> | Partial<IStateFooter> | Partial<IContextTarget> | Partial<ILocalStorageDb>

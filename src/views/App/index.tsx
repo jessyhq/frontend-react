@@ -1,13 +1,14 @@
 // Packages:
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useEffect, useCallback } from 'react'
 import styled from 'styled-components'
 import Color from 'color'
+import { useDispatch, useSelector } from 'react-redux'
 import { openDb } from 'idb'
 import GridLayout, { WidthProvider } from 'react-grid-layout'
 
 
 // Typescript:
-import { IExtension, IJessyLocalStorageDb } from './types'
+import { IExtension } from './types'
 
 
 // Constants:
@@ -19,6 +20,11 @@ import populateNewLocalStorageDb from '../../util/populateNewLocalStorageDb'
 // Components:
 import Music from '../../components/extensions/Music'
 import TodoList from '../../components/extensions/TodoList'
+
+
+// Redux:
+import { updateLocalStorageDb } from '../../redux/actions'
+import { IState } from '../../redux/reducers/types'
 
 
 // Styles:
@@ -47,13 +53,11 @@ const Background = styled.div`
 const GridLayoutWithWidth = WidthProvider(GridLayout)
 
 const App = () => {
+  // Constants:
+  const dispatch = useDispatch()
+
   // State:
-  const [ localStorageDb, setLocalStorageDb ]  = useState<IJessyLocalStorageDb>({
-    isFirstTime: false,
-    db: null,
-    extensions: [],
-    layout: []
-  })
+  const localStorageDb = useSelector((state: IState) => state.global.localStorageDb)
 
   // Functions:
   const renderSwitch = useCallback((extension: IExtension) => {
@@ -69,13 +73,13 @@ const App = () => {
 
   const updateLayout = useCallback(async (newLayout: GridLayout.Layout[]) => {
     try {
-      setLocalStorageDb({ ...localStorageDb, layout: newLayout })
+      dispatch(updateLocalStorageDb({ layout: newLayout }))
       if (!localStorageDb.db) return
       await localStorageDb.db.transaction('core', 'readwrite').objectStore('core').put({ key: 'layout', value: newLayout })
     } catch(e) {
       console.error(e)
     }
-  }, [ localStorageDb ])
+  }, [ dispatch, localStorageDb ])
 
   // Effects:
   useEffect(() => {
@@ -87,14 +91,15 @@ const App = () => {
       })
       if (isFirstTime) await populateNewLocalStorageDb(indexedDB)
       const tx = indexedDB.transaction('core', 'readonly')
-      setLocalStorageDb({
+      const newLocalStorageDb = {
         db: indexedDB,
         isFirstTime,
         extensions: (await tx.objectStore('core').get('extensions')).value as IExtension[],
         layout: (await tx.objectStore('core').get('layout')).value as GridLayout.Layout[]
-      })
+      }
+      dispatch(updateLocalStorageDb(newLocalStorageDb))
     })()
-  }, [])
+  }, [ dispatch ])
 
   // Return:
   return (
