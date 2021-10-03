@@ -4,7 +4,7 @@ import { nanoid } from 'nanoid'
 
 
 // Constants:
-import { EXTENSION } from '../constants/extensions'
+import { EXTENSION_TYPE } from '../constants/extensions'
 
 
 // Functions::
@@ -18,15 +18,15 @@ const populateNewLocalStorageDb = async (indexedDB: DB) => {
         value: [
           {
             _id: IDList[0],
-            type: EXTENSION.MUSIC.type
+            type: EXTENSION_TYPE.MUSIC
           },
           {
             _id: IDList[1],
-            type: EXTENSION.TODO_LIST.type
+            type: EXTENSION_TYPE.TODO_LIST
           },
           {
             _id: IDList[2],
-            type: EXTENSION.TODO_LIST.type
+            type: EXTENSION_TYPE.TODO_LIST
           }
         ]
       }),

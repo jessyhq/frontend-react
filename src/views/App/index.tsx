@@ -12,7 +12,7 @@ import { IExtension, IJessyLocalStorageDb } from './types'
 
 // Constants:
 import COLORS from '../../styles/colors'
-import { EXTENSION } from '../../constants/extensions'
+import { EXTENSION_TYPE } from '../../constants/extensions'
 import populateNewLocalStorageDb from '../../util/populateNewLocalStorageDb'
 
 
@@ -56,6 +56,17 @@ const App = () => {
   })
 
   // Functions:
+  const renderSwitch = useCallback((extension: IExtension) => {
+    switch(extension.type) {
+      case EXTENSION_TYPE.MUSIC:
+        return <Music _id={ extension._id } />
+      case EXTENSION_TYPE.TODO_LIST:
+        return <TodoList _id={ extension._id } />
+      default:
+        return <></>
+    }
+  }, [])
+
   const updateLayout = useCallback(async (newLayout: GridLayout.Layout[]) => {
     try {
       setLocalStorageDb({ ...localStorageDb, layout: newLayout })
@@ -105,14 +116,7 @@ const App = () => {
             onLayoutChange={ layout => updateLayout(layout) }
             draggableCancel='.draggableCancel'
           >
-            {
-              // localStorageDb.extensions.length > 0 &&
-              // localStorageDb.extensions.map(extension => <span key={ extension._id } >{ EXTENSION[ extension.type ].component({ _id: extension._id }) }</span>)
-              localStorageDb.extensions.map(extension => <span key={ extension._id } >{
-                (extension.type === EXTENSION['MUSIC'].type && <Music _id={ extension._id } />) ||
-                (extension.type === EXTENSION['TODO_LIST'].type && <TodoList _id={ extension._id } />)
-              }</span>)
-            }
+            { localStorageDb.extensions.map(extension => <span key={ extension._id } >{ renderSwitch(extension) }</span>) }
           </GridLayoutWithWidth>
         </Wrapper>
         :
