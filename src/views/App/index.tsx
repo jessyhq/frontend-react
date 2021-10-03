@@ -1,13 +1,24 @@
 // Packages:
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import styled from 'styled-components'
 import Color from 'color'
+import { openDb } from 'idb'
 import GridLayout, { WidthProvider } from 'react-grid-layout'
+
+
+// Typescript:
+import { IExtension, IJessyLocalStorageDb } from './types'
 
 
 // Constants:
 import COLORS from '../../styles/colors'
 import { EXTENSION } from '../../constants/extensions'
+import populateNewLocalStorageDb from '../../util/populateNewLocalStorageDb'
+
+
+// Components:
+import Music from '../../components/extensions/Music'
+import TodoList from '../../components/extensions/TodoList'
 
 
 // Styles:
@@ -36,26 +47,43 @@ const Background = styled.div`
 const GridLayoutWithWidth = WidthProvider(GridLayout)
 
 const App = () => {
-  // Experimental Constants:
-  const [ extensions, setExtensions ] = useState([
-    {
-      _id: 'some-id-1',
-      type: EXTENSION.MUSIC.type
-    },
-    {
-      _id: 'some-id-2',
-      type: EXTENSION.TODO_LIST.type
-    },
-    {
-      _id: 'some-id-3',
-      type: EXTENSION.TODO_LIST.type
+  // State:
+  const [ localStorageDb, setLocalStorageDb ]  = useState<IJessyLocalStorageDb>({
+    isFirstTime: false,
+    db: null,
+    extensions: [],
+    layout: []
+  })
+
+  // Functions:
+  const updateLayout = useCallback(async (newLayout: GridLayout.Layout[]) => {
+    try {
+      setLocalStorageDb({ ...localStorageDb, layout: newLayout })
+      if (!localStorageDb.db) return
+      await localStorageDb.db.transaction('core', 'readwrite').objectStore('core').put({ key: 'layout', value: newLayout })
+    } catch(e) {
+      console.error(e)
     }
-  ])
-  const [ layout, setLayout ] = useState<GridLayout.Layout[]>([
-    { i: 'some-id-1', x: 0, y: 48, w: 35 + 1, h: 8 + 2 },
-    { i: 'some-id-2', x: 27, y: 0, w: 25 + 2, h: 35 + 1 },
-    { i: 'some-id-3', x: 0, y: 0, w: 25 + 2, h: 35 + 1 }
-  ])
+  }, [ localStorageDb ])
+
+  // Effects:
+  useEffect(() => {
+    (async () => {
+      let isFirstTime = false
+      const indexedDB = await openDb('jessyLocalStorageDb', 1, db => {
+        isFirstTime = true
+        db.createObjectStore('core', { keyPath: 'key', autoIncrement: false })
+      })
+      if (isFirstTime) await populateNewLocalStorageDb(indexedDB)
+      const tx = indexedDB.transaction('core', 'readonly')
+      setLocalStorageDb({
+        db: indexedDB,
+        isFirstTime,
+        extensions: (await tx.objectStore('core').get('extensions')).value as IExtension[],
+        layout: (await tx.objectStore('core').get('layout')).value as GridLayout.Layout[]
+      })
+    })()
+  }, [])
 
   // Return:
   return (
@@ -73,12 +101,17 @@ const App = () => {
             isBounded
             preventCollision
             compactType={ null }
-            layout={ layout }
-            onLayoutChange={ layout => setLayout(layout) }
+            layout={ localStorageDb.layout }
+            onLayoutChange={ layout => updateLayout(layout) }
             draggableCancel='.draggableCancel'
           >
             {
-              extensions.map(extension => <span key={ extension._id } >{ EXTENSION[ extension.type ].component({ _id: extension._id }) }</span>)
+              // localStorageDb.extensions.length > 0 &&
+              // localStorageDb.extensions.map(extension => <span key={ extension._id } >{ EXTENSION[ extension.type ].component({ _id: extension._id }) }</span>)
+              localStorageDb.extensions.map(extension => <span key={ extension._id } >{
+                (extension.type === EXTENSION['MUSIC'].type && <Music _id={ extension._id } />) ||
+                (extension.type === EXTENSION['TODO_LIST'].type && <TodoList _id={ extension._id } />)
+              }</span>)
             }
           </GridLayoutWithWidth>
         </Wrapper>
