@@ -26,7 +26,7 @@ import { updateLocalStorageDb } from '../../../redux/actions'
 
 
 // Styles:
-export const Wrapper = styled.div<{ isShowing: boolean, invert: { X: boolean, Y: boolean } }>`
+export const Wrapper = styled.div<{ currentHeight: number, isShowing: boolean, invert: { X: boolean, Y: boolean } }>`
   position: absolute;
   width: 15rem;
   /* height: 20rem; */
@@ -36,7 +36,7 @@ export const Wrapper = styled.div<{ isShowing: boolean, invert: { X: boolean, Y:
   font-size: 0.9rem;
   border: 1px solid ${ Color(COLORS.WHITE).darken(0.1).toString() };
   border-radius: 5px;
-  transform: ${ props => 'translate(' + (props.invert.X ? '-15.25rem, ' : '0.25rem, ') + (props.invert.Y ? '-20.25rem' : '0.25rem') + ')'  };
+  transform: ${ props => 'translate(' + (props.invert.X ? '-15.25rem, ' : '0.25rem, ') + (props.invert.Y ? `-${ props.currentHeight }.25rem` : '0.25rem') + ')'  };
   transition: filter 0.2s ease, margin-top 0.2s ease;
 `
 
@@ -164,6 +164,7 @@ const ContextMenu = () => {
         X: anchorPoint.X + (wrapperBounds?.width ?? -1) > (footerBounds?.right ?? 0),
         Y: anchorPoint.Y + (wrapperBounds?.height ?? -1) > (footerBounds?.top ?? 0)
       }}
+      currentHeight={ Math.round((wrapperBounds?.height ?? 160) / 16) }
     >
       {
         isFocusedOnExtension ?
