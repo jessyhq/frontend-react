@@ -7,9 +7,11 @@ import {
   UPDATE_GLOBAL,
   UPDATE_FOOTER,
   UPDATE_CONTEXT_TARGET,
-  UPDATE_LOCAL_STORAGE_DB
+  UPDATE_LOCAL_STORAGE_DB,
+  UPDATE_CORE_OBJECT_STORE
 } from '../action-types'
 import THEMES from '../../styles/themes'
+import { OBJECT_STORE, OBJECT_STORE_CORE_KEYS } from '../../constants/indexedDB/objectStores'
 
 
 // Redux:
@@ -20,8 +22,12 @@ const initialState : IState = {
     localStorageDb: {
       isFirstTime: false,
       db: null,
-      extensions: [],
-      layout: []
+      objectStores: {
+        [ OBJECT_STORE.CORE ]: {
+          [ OBJECT_STORE_CORE_KEYS.EXTENSIONS ]: [],
+          [ OBJECT_STORE_CORE_KEYS.LAYOUT ]: []
+        }
+      }
     }
   },
   footer: {
@@ -68,6 +74,23 @@ const reducer = (state = initialState, action: IAction) => {
           localStorageDb: {
             ...state.global.localStorageDb,
             ...action.payload
+          }
+        }
+      }
+    case UPDATE_CORE_OBJECT_STORE:
+      return {
+        ...state,
+        global: {
+          ...state.global,
+          localStorageDb: {
+            ...state.global.localStorageDb,
+            objectStores: {
+              ...state.global.localStorageDb.objectStores,
+              core: {
+                ...state.global.localStorageDb.objectStores.core,
+                ...action.payload
+              }
+            }
           }
         }
       }

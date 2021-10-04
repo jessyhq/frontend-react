@@ -4,6 +4,7 @@ import styled from 'styled-components'
 import Color from 'color'
 import { useDispatch, useSelector } from 'react-redux'
 import { openDb } from 'idb'
+import isArrayEqual from '../../util/isArrayEqual'
 import GridLayout, { WidthProvider } from 'react-grid-layout'
 
 
@@ -14,6 +15,7 @@ import { IExtension } from './types'
 // Constants:
 import COLORS from '../../styles/colors'
 import { EXTENSION_TYPE } from '../../constants/extensions'
+import { OBJECT_STORE, OBJECT_STORE_CORE_KEYS } from '../../constants/indexedDB/objectStores'
 import populateNewLocalStorageDb from '../../util/populateNewLocalStorageDb'
 
 
@@ -23,8 +25,9 @@ import TodoList from '../../components/extensions/TodoList'
 
 
 // Redux:
-import { updateLocalStorageDb } from '../../redux/actions'
+import { updateLocalStorageDb, updateObjectStore } from '../../redux/actions'
 import { IState } from '../../redux/reducers/types'
+
 
 
 // Styles:
@@ -73,13 +76,11 @@ const App = () => {
 
   const updateLayout = useCallback(async (newLayout: GridLayout.Layout[]) => {
     try {
-      dispatch(updateLocalStorageDb({ layout: newLayout }))
-      if (!localStorageDb.db) return
-      await localStorageDb.db.transaction('core', 'readwrite').objectStore('core').put({ key: 'layout', value: newLayout })
+      if (!isArrayEqual(newLayout, localStorageDb.objectStores.core.layout)) dispatch(updateObjectStore({ layout: newLayout }, OBJECT_STORE.CORE))
     } catch(e) {
       console.error(e)
     }
-  }, [ dispatch, localStorageDb ])
+  }, [ dispatch, localStorageDb.objectStores.core.layout ])
 
   // Effects:
   useEffect(() => {
@@ -87,17 +88,15 @@ const App = () => {
       let isFirstTime = false
       const indexedDB = await openDb('jessyLocalStorageDb', 1, db => {
         isFirstTime = true
-        db.createObjectStore('core', { keyPath: 'key', autoIncrement: false })
+        db.createObjectStore(OBJECT_STORE.CORE, { keyPath: 'key', autoIncrement: false })
       })
       if (isFirstTime) await populateNewLocalStorageDb(indexedDB)
-      const tx = indexedDB.transaction('core', 'readonly')
-      const newLocalStorageDb = {
-        db: indexedDB,
-        isFirstTime,
-        extensions: (await tx.objectStore('core').get('extensions')).value as IExtension[],
-        layout: (await tx.objectStore('core').get('layout')).value as GridLayout.Layout[]
-      }
-      dispatch(updateLocalStorageDb(newLocalStorageDb))
+      const tx = indexedDB.transaction(OBJECT_STORE.CORE, 'readonly')
+      dispatch(updateLocalStorageDb({ db: indexedDB, isFirstTime }))
+      dispatch(updateObjectStore({
+        extensions: (await tx.objectStore(OBJECT_STORE.CORE).get(OBJECT_STORE_CORE_KEYS.EXTENSIONS)).value as IExtension[],
+        layout: (await tx.objectStore(OBJECT_STORE.CORE).get(OBJECT_STORE_CORE_KEYS.LAYOUT)).value as GridLayout.Layout[]
+      }, OBJECT_STORE.CORE))
     })()
   }, [ dispatch ])
 
@@ -117,11 +116,11 @@ const App = () => {
             isBounded
             preventCollision
             compactType={ null }
-            layout={ localStorageDb.layout }
+            layout={ localStorageDb.objectStores.core.layout }
             onLayoutChange={ layout => updateLayout(layout) }
             draggableCancel='.draggableCancel'
           >
-            { localStorageDb.extensions.map(extension => <span key={ extension._id } >{ renderSwitch(extension) }</span>) }
+            { localStorageDb.objectStores.core.extensions.map(extension => <span key={ extension._id } >{ renderSwitch(extension) }</span>) }
           </GridLayoutWithWidth>
         </Wrapper>
         :

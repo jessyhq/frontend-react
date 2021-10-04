@@ -5,16 +5,17 @@ import { nanoid } from 'nanoid'
 
 // Constants:
 import { EXTENSION_TYPE } from '../constants/extensions'
+import { OBJECT_STORE, OBJECT_STORE_CORE_KEYS } from '../constants/indexedDB/objectStores'
 
 
 // Functions::
 const populateNewLocalStorageDb = async (indexedDB: DB) => {
   try {
     const IDList = [ ...Array(3) ].map(nanoid)
-    const tx = indexedDB.transaction('core', 'readwrite')
+    const tx = indexedDB.transaction(OBJECT_STORE.CORE, 'readwrite')
     await Promise.all([
-      tx.objectStore('core').add({
-        key: 'extensions',
+      tx.objectStore(OBJECT_STORE.CORE).add({
+        key: OBJECT_STORE_CORE_KEYS.EXTENSIONS,
         value: [
           {
             _id: IDList[0],
@@ -30,8 +31,8 @@ const populateNewLocalStorageDb = async (indexedDB: DB) => {
           }
         ]
       }),
-      tx.objectStore('core').add({
-        key: 'layout',
+      tx.objectStore(OBJECT_STORE.CORE).add({
+        key: OBJECT_STORE_CORE_KEYS.LAYOUT,
         value: [
           { i: IDList[0], x: 0, y: 48, w: 35 + 1, h: 8 + 2 },
           { i: IDList[1], x: 27, y: 0, w: 25 + 2, h: 35 + 1 },

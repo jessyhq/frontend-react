@@ -19,10 +19,11 @@ import { IoAddCircleOutline } from 'react-icons/io5'
 
 // Constants:
 import COLORS from '../../../styles/colors'
+import { OBJECT_STORE } from '../../../constants/indexedDB/objectStores'
 
 
 // Redux:
-import { updateLocalStorageDb } from '../../../redux/actions'
+import { updateObjectStore } from '../../../redux/actions'
 
 
 // Styles:
@@ -78,7 +79,7 @@ const ContextMenu = () => {
 
   // State:
   const contextTarget = useSelector((state: IState) => state.global.contextTarget)
-  const localStorageDb = useSelector((state: IState) => state.global.localStorageDb)
+  const coreObjectStore = useSelector((state: IState) => state.global.localStorageDb.objectStores.core)
   const footerBounds = useSelector((state: IState) => state.footer.bounds)
   const [ wrapperBounds, setWrapperBounds ] = useState<DOMRect | null>(null)
   const [ anchorPoint, setAnchorPoint ] = useState({ X: 0, Y: 0 })
@@ -119,12 +120,12 @@ const ContextMenu = () => {
   }, [ isShowing, zIndex ])
 
   const deleteExtension = useCallback(() => {
-    const [ currentExtensions, currentLayout ] = [ localStorageDb.extensions, localStorageDb.layout ]
+    const [ currentExtensions, currentLayout ] = [ coreObjectStore.extensions, coreObjectStore.layout ]
     currentExtensions.splice(currentExtensions.findIndex(extension => extension._id === focusedExtensionID), 1)
     currentLayout.splice(currentLayout.findIndex(layout => layout.i === focusedExtensionID), 1)
-    dispatch(updateLocalStorageDb({ extensions: currentExtensions, layout: currentLayout }))
+    dispatch(updateObjectStore({ extensions: currentExtensions, layout: currentLayout }, OBJECT_STORE.CORE))
     closeMenu()
-  }, [ closeMenu, dispatch, focusedExtensionID, localStorageDb.extensions, localStorageDb.layout ])
+  }, [ closeMenu, dispatch, focusedExtensionID, coreObjectStore ])
 
   // Effects:
   useEffect(() => {
