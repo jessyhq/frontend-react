@@ -1,5 +1,7 @@
 // Packages:
 import { Dispatch } from 'redux'
+import isArrayEqual from '../../util/isArrayEqual'
+import GridLayout from 'react-grid-layout'
 
 
 // Typescript:
@@ -9,7 +11,7 @@ import {
   IUpdateContextTarget,
   IDispatchLocalStorageDb
 } from './types'
-import { ILocalStorageDb } from '../../views/App/types'
+import { IExtension, ILocalStorageDb } from '../../views/App/types'
 import { IState } from '../reducers/types'
 
 
@@ -29,8 +31,17 @@ export const updateContextTarget: IUpdateContextTarget = (payload) => ({ type: U
 export const updateLocalStorageDb = (payload: Partial<ILocalStorageDb>) => async (dispatch: Dispatch<IDispatchLocalStorageDb>, getState: () => IState) => {
   const db = getState().global.localStorageDb.db
   if (db) {
-    if (payload.extensions) await db.transaction('core', 'readwrite').objectStore('core').put({ key: 'extensions', value: payload.extensions })
-    if (payload.layout) await db.transaction('core', 'readwrite').objectStore('core').put({ key: 'layout', value: payload.layout })
+    const tx = db.transaction('core', 'readonly')
+    const dbExtensions = (await tx.objectStore('core').get('extensions')).value as IExtension[]
+    const dbLayout = (await tx.objectStore('core').get('layout')).value as GridLayout.Layout[]
+    if (payload.extensions && isArrayEqual(payload.extensions, dbExtensions)) await db.transaction('core', 'readwrite').objectStore('core').put({
+      key: 'extensions',
+      value: payload.extensions
+    })
+    if (payload.layout && isArrayEqual(payload.layout, dbLayout)) await db.transaction('core', 'readwrite').objectStore('core').put({
+      key: 'layout',
+      value: payload.layout
+    })
   }
   dispatch({
     type: UPDATE_LOCAL_STORAGE_DB,
