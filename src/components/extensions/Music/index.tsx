@@ -10,7 +10,6 @@ import { playButtonPress } from '../../../util/soundEffects'
 
 // Typescript:
 import { IState } from '../../../redux/reducers/types'
-import { TPlayer } from './types'
 
 
 // Imports:
@@ -57,9 +56,10 @@ const Music = ({ _id }: { _id: string }) => {
   })
 
   // State:
+  const localMusicState = useSelector((state: IState) => state.global.localStorageDb.objectStores.extensions.music[ _id ])
   const contextTarget = useSelector((state: IState) => state.global.contextTarget)
   const [ isOn, setIsOn ] = useState(true)
-  const [ currentPlayer, setCurrentPlayer ] = useState<TPlayer>('SPOTIFY')
+  const [ currentPlayer, setCurrentPlayer ] = useState<PLAYER_TYPE>(PLAYER_TYPE.SPOTIFY)
   const { value: URLValue, bind: bindURLValue, reset: resetURLValue } = useInput('')
   const [ playerURL, setPlayerURL ] = useState({
     APPLE_MUSIC:'https://embed.music.apple.com/us/album/study-music-playlist-ultimate-studying-music-for-concentration/977417407',

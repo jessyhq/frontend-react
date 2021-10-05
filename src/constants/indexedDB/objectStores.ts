@@ -1,8 +1,15 @@
 // Exports:
 export enum OBJECT_STORE {
-  CORE = 'core'
+  CORE = 'core',
+  EXTENSIONS = 'extensions'
 }
-export enum OBJECT_STORE_CORE_KEYS {
+
+export enum OBJECT_STORE_CORE_IDS {
   EXTENSIONS = 'extensions',
   LAYOUT = 'layout'
+}
+
+export enum OBJECT_STORE_EXTENSION_IDS {
+  MUSIC = 'music',
+  TODO_LIST = 'todo_list'
 }

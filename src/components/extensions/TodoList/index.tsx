@@ -103,7 +103,8 @@ const TodoList = ({ _id }: { _id: string }) => {
       _id: (Math.random() + 1).toString(36).substring(2),
       isDone: false,
       time: {
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        lastEdited: Date.now()
       },
       title: ''
     })

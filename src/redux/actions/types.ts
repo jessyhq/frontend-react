@@ -1,11 +1,12 @@
 // Typescript:
-import { ICoreObjectStore, ILocalStorageDb } from '../../views/App/types'
+import { ICoreObjectStore, IExtensionsObjectStore, ILocalStorageDb } from '../../indexedDB/types'
 import {
   UPDATE_GLOBAL,
   UPDATE_FOOTER,
   UPDATE_CONTEXT_TARGET,
   UPDATE_LOCAL_STORAGE_DB,
-  UPDATE_CORE_OBJECT_STORE
+  UPDATE_CORE_OBJECT_STORE,
+  UPDATE_EXTENSIONS_OBJECT_STORE
 } from '../action-types'
 import { IContextTarget, IStateFooter, IStateGlobal } from '../reducers/types'
 
@@ -44,5 +45,22 @@ export interface IDispatchCoreObjectStore {
   payload: Partial<ICoreObjectStore>
 }
 
-export type TActionType = typeof UPDATE_GLOBAL | typeof UPDATE_FOOTER | typeof UPDATE_CONTEXT_TARGET | typeof UPDATE_LOCAL_STORAGE_DB | typeof UPDATE_CORE_OBJECT_STORE
-export type IActionPayload = Partial<IStateGlobal> | Partial<IStateFooter> | Partial<IContextTarget> | Partial<ILocalStorageDb> | Partial<ICoreObjectStore>
+export interface IDispatchExtensionsObjectStore {
+  type: typeof UPDATE_EXTENSIONS_OBJECT_STORE
+  payload: Partial<IExtensionsObjectStore>
+}
+
+export type TActionType =
+  typeof UPDATE_GLOBAL |
+  typeof UPDATE_FOOTER |
+  typeof UPDATE_CONTEXT_TARGET |
+  typeof UPDATE_LOCAL_STORAGE_DB |
+  typeof UPDATE_CORE_OBJECT_STORE |
+  typeof UPDATE_EXTENSIONS_OBJECT_STORE
+export type IActionPayload =
+  Partial<IStateGlobal> &
+  Partial<IStateFooter> &
+  Partial<IContextTarget> &
+  Partial<ILocalStorageDb> &
+  Partial<ICoreObjectStore> &
+  Partial<IExtensionsObjectStore>

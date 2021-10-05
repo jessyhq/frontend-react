@@ -1,12 +1,12 @@
 // Typescript:
-import { TActionType } from '../actions/types'
+import { IActionPayload, TActionType } from '../actions/types'
 import { TTHEME } from '../../styles/types'
-import { ILocalStorageDb } from '../../views/App/types'
+import { ILocalStorageDb } from '../../indexedDB/types'
 
 
 // Exports:
 export interface IContextTarget {
-  [ key: string ]: boolean
+  [ _id: string ]: boolean
 }
 export interface IStateGlobal {
   theme: TTHEME

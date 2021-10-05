@@ -9,14 +9,14 @@ import GridLayout, { WidthProvider } from 'react-grid-layout'
 
 
 // Typescript:
-import { IExtension } from './types'
+import { IExtension, IObjectStoreExtensionMusic, IObjectStoreExtensionTodoList } from '../../indexedDB/types'
 
 
 // Constants:
 import COLORS from '../../styles/colors'
 import { EXTENSION_TYPE } from '../../constants/extensions'
-import { OBJECT_STORE, OBJECT_STORE_CORE_KEYS } from '../../constants/indexedDB/objectStores'
-import populateNewLocalStorageDb from '../../util/populateNewLocalStorageDb'
+import { OBJECT_STORE, OBJECT_STORE_CORE_IDS, OBJECT_STORE_EXTENSION_IDS } from '../../constants/indexedDB/objectStores'
+import { populateIndexedDB } from '../../indexedDB'
 
 
 // Components:
@@ -88,15 +88,21 @@ const App = () => {
       let isFirstTime = false
       const indexedDB = await openDb('jessyLocalStorageDb', 1, db => {
         isFirstTime = true
-        db.createObjectStore(OBJECT_STORE.CORE, { keyPath: 'key', autoIncrement: false })
+        db.createObjectStore(OBJECT_STORE.CORE, { keyPath: '_id', autoIncrement: false })
+        db.createObjectStore(OBJECT_STORE.EXTENSIONS, { keyPath: '_id', autoIncrement: false })
       })
-      if (isFirstTime) await populateNewLocalStorageDb(indexedDB)
-      const tx = indexedDB.transaction(OBJECT_STORE.CORE, 'readonly')
+      if (isFirstTime) await populateIndexedDB(indexedDB)
+      const coreTransaction = indexedDB.transaction(OBJECT_STORE.CORE, 'readonly')
       dispatch(updateLocalStorageDb({ db: indexedDB, isFirstTime }))
       dispatch(updateObjectStore({
-        extensions: (await tx.objectStore(OBJECT_STORE.CORE).get(OBJECT_STORE_CORE_KEYS.EXTENSIONS)).value as IExtension[],
-        layout: (await tx.objectStore(OBJECT_STORE.CORE).get(OBJECT_STORE_CORE_KEYS.LAYOUT)).value as GridLayout.Layout[]
+        extensions: (await coreTransaction.objectStore(OBJECT_STORE.CORE).get(OBJECT_STORE_CORE_IDS.EXTENSIONS)).value as IExtension[],
+        layout: (await coreTransaction.objectStore(OBJECT_STORE.CORE).get(OBJECT_STORE_CORE_IDS.LAYOUT)).value as GridLayout.Layout[]
       }, OBJECT_STORE.CORE))
+      const extensionsTransaction = indexedDB.transaction(OBJECT_STORE.EXTENSIONS, 'readonly')
+      dispatch(updateObjectStore({
+        music: (await extensionsTransaction.objectStore(OBJECT_STORE.EXTENSIONS).get(OBJECT_STORE_EXTENSION_IDS.MUSIC)).value as IObjectStoreExtensionMusic,
+        todo_list: (await extensionsTransaction.objectStore(OBJECT_STORE.EXTENSIONS).get(OBJECT_STORE_EXTENSION_IDS.TODO_LIST)).value as IObjectStoreExtensionTodoList
+      }, OBJECT_STORE.EXTENSIONS))
     })()
   }, [ dispatch ])
 

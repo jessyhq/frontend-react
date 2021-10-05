@@ -13,6 +13,7 @@ export type TTask = {
   tags?: string[]
   time: {
     createdAt: number
+    lastEdited: number
     whenDue?: number
   }
   title: string
@@ -23,6 +24,7 @@ export type TSubTask = {
   isDone: boolean
   time: {
     createdAt: number
+    lastEdited: number
   }
   title: string
 }

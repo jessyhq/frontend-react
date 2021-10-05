@@ -8,10 +8,11 @@ import {
   UPDATE_FOOTER,
   UPDATE_CONTEXT_TARGET,
   UPDATE_LOCAL_STORAGE_DB,
-  UPDATE_CORE_OBJECT_STORE
+  UPDATE_CORE_OBJECT_STORE,
+  UPDATE_EXTENSIONS_OBJECT_STORE
 } from '../action-types'
 import THEMES from '../../styles/themes'
-import { OBJECT_STORE, OBJECT_STORE_CORE_KEYS } from '../../constants/indexedDB/objectStores'
+import { OBJECT_STORE, OBJECT_STORE_CORE_IDS, OBJECT_STORE_EXTENSION_IDS } from '../../constants/indexedDB/objectStores'
 
 
 // Redux:
@@ -24,8 +25,12 @@ const initialState : IState = {
       db: null,
       objectStores: {
         [ OBJECT_STORE.CORE ]: {
-          [ OBJECT_STORE_CORE_KEYS.EXTENSIONS ]: [],
-          [ OBJECT_STORE_CORE_KEYS.LAYOUT ]: []
+          [ OBJECT_STORE_CORE_IDS.EXTENSIONS ]: [],
+          [ OBJECT_STORE_CORE_IDS.LAYOUT ]: []
+        },
+        [ OBJECT_STORE.EXTENSIONS ]: {
+          [ OBJECT_STORE_EXTENSION_IDS.MUSIC ]: {},
+          [ OBJECT_STORE_EXTENSION_IDS.TODO_LIST ]: {}
         }
       }
     }
@@ -86,8 +91,25 @@ const reducer = (state = initialState, action: IAction) => {
             ...state.global.localStorageDb,
             objectStores: {
               ...state.global.localStorageDb.objectStores,
-              core: {
-                ...state.global.localStorageDb.objectStores.core,
+              [ OBJECT_STORE.CORE ]: {
+                ...state.global.localStorageDb.objectStores[ OBJECT_STORE.CORE ],
+                ...action.payload
+              }
+            }
+          }
+        }
+      }
+    case UPDATE_EXTENSIONS_OBJECT_STORE:
+      return {
+        ...state,
+        global: {
+          ...state.global,
+          localStorageDb: {
+            ...state.global.localStorageDb,
+            objectStores: {
+              ...state.global.localStorageDb.objectStores,
+              [ OBJECT_STORE.EXTENSIONS ]: {
+                ...state.global.localStorageDb.objectStores[ OBJECT_STORE.EXTENSIONS ],
                 ...action.payload
               }
             }
