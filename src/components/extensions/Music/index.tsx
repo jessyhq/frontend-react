@@ -11,6 +11,7 @@ import { useInterval } from 'react-use'
 
 // Typescript:
 import { IState } from '../../../redux/reducers/types'
+import { IObjectStoreExtensionMusic } from '../../../indexedDB/types'
 
 
 // Imports:
@@ -21,7 +22,6 @@ import { RiSpotifyFill, RiAppleFill, RiSoundcloudFill } from 'react-icons/ri'
 // Constants:
 import { PLAYER_TYPE } from '../../../constants/extensions/Music'
 import { TIME } from '../../../constants'
-import { IObjectStoreExtensionMusic } from '../../../indexedDB/types'
 import { OBJECT_STORE, OBJECT_STORE_EXTENSION_IDS } from '../../../constants/indexedDB/objectStores'
 
 
