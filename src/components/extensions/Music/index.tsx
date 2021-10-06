@@ -22,7 +22,7 @@ import { RiSpotifyFill, RiAppleFill, RiSoundcloudFill } from 'react-icons/ri'
 import { PLAYER_TYPE } from '../../../constants/extensions/Music'
 import { TIME } from '../../../constants'
 import { IObjectStoreExtensionMusic } from '../../../indexedDB/types'
-import { OBJECT_STORE } from '../../../constants/indexedDB/objectStores'
+import { OBJECT_STORE, OBJECT_STORE_EXTENSION_IDS } from '../../../constants/indexedDB/objectStores'
 
 
 // Redux:
@@ -93,7 +93,7 @@ const Music = ({ _id }: { _id: string }) => {
     setCurrentPlayer(newCurrentPlayer)
     setPlayerURL(newPlayerURL)
     dispatch(updateObjectStore({
-      music: {
+      [ OBJECT_STORE_EXTENSION_IDS.MUSIC ]: {
           [ _id ]: {
           ...localMusicState,
           lastMusic: {
@@ -115,12 +115,30 @@ const Music = ({ _id }: { _id: string }) => {
     if (isOn) {
       setIsOn(false)
       dispatch(updateObjectStore({
-        music: { [ _id ]: { ...localMusicState, isOn: false, time: { ...localMusicState.time, lastEdited: Date.now() } } } as IObjectStoreExtensionMusic
+        [ OBJECT_STORE_EXTENSION_IDS.MUSIC ]: {
+          [ _id ]: {
+            ...localMusicState,
+            isOn: false,
+            time: {
+              ...localMusicState.time,
+              lastEdited: Date.now()
+            }
+          }
+        } as IObjectStoreExtensionMusic
       }, OBJECT_STORE.EXTENSIONS))
     } else {
       setIsOn(true)
       dispatch(updateObjectStore({
-        music: { [ _id ]: { ...localMusicState, isOn: true, time: { ...localMusicState.time, lastEdited: Date.now() } } } as IObjectStoreExtensionMusic
+        [ OBJECT_STORE_EXTENSION_IDS.MUSIC ]: {
+          [ _id ]: {
+            ...localMusicState,
+            isOn: true,
+            time: {
+              ...localMusicState.time,
+              lastEdited: Date.now()
+            }
+          }
+        } as IObjectStoreExtensionMusic
       }, OBJECT_STORE.EXTENSIONS))
     }
   }, [ _id, dispatch, isOn, localMusicState ])
@@ -130,7 +148,7 @@ const Music = ({ _id }: { _id: string }) => {
       playButtonPress()
       setCurrentPlayer(newPlayer)
       dispatch(updateObjectStore({
-        music: {
+        [ OBJECT_STORE_EXTENSION_IDS.MUSIC ]: {
           [ _id ]: {
             ...localMusicState,
             lastMusic: {
@@ -166,7 +184,15 @@ const Music = ({ _id }: { _id: string }) => {
 
   useInterval(() => {
     dispatch(updateObjectStore({
-      music: { [ _id ]: { ...localMusicState, time: { ...localMusicState.time, uptime: localMusicState.time.uptime + TIME.MINUTE } } } as IObjectStoreExtensionMusic
+      [ OBJECT_STORE_EXTENSION_IDS.MUSIC ]: {
+        [ _id ]: {
+          ...localMusicState,
+          time: {
+            ...localMusicState.time,
+            uptime: localMusicState.time.uptime + TIME.MINUTE
+          }
+        }
+      } as IObjectStoreExtensionMusic
     }, OBJECT_STORE.EXTENSIONS))
   }, TIME.MINUTE)
 
