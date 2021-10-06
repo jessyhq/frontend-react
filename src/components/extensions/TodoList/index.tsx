@@ -4,16 +4,23 @@ import { useDispatch, useSelector } from 'react-redux'
 import useOuterContextMenu from '../../../hooks/use-outer-context-menu'
 import { Scrollbars } from 'react-custom-scrollbars-2'
 import { playButtonPress } from '../../../util/soundEffects'
+import { useInterval } from 'react-use'
 import { DragDropContext, Droppable } from 'react-beautiful-dnd'
 
 
 // Typescript:
 import { IState } from '../../../redux/reducers/types'
 import { TTask } from '../../../types/taskItem'
+import { IObjectStoreExtensionTodoList } from '../../../indexedDB/types'
 
 
 // Imports:
 import { MdPowerSettingsNew } from 'react-icons/md'
+
+
+// Constants:
+import { OBJECT_STORE, OBJECT_STORE_EXTENSION_IDS } from '../../../constants/indexedDB/objectStores'
+import { TIME } from '../../../constants'
 
 
 // Components:
@@ -22,7 +29,7 @@ import LCDScreen from '../../global/LCDScreen'
 
 
 // Redux:
-import { updateContextTarget } from '../../../redux/actions'
+import { updateContextTarget, updateObjectStore } from '../../../redux/actions'
 
 
 // Styles:
@@ -71,12 +78,57 @@ const TodoList = ({ _id }: { _id: string }) => {
   const [ taskIndexBeingDragged, setTaskIndexBeingDragged ] = useState<number | undefined>(undefined)
 
   // Functions:
+  const onPowerButtonClick = useCallback(() => {
+    playButtonPress()
+    if (isOn) {
+      setIsOn(false)
+      dispatch(updateObjectStore({
+        [ OBJECT_STORE_EXTENSION_IDS.TODO_LIST ]: {
+          [ _id ]: {
+            ...localTodoListState,
+            isOn: false,
+            time: {
+              ...localTodoListState.time,
+              lastEdited: Date.now()
+            }
+          }
+        } as IObjectStoreExtensionTodoList
+      }, OBJECT_STORE.EXTENSIONS))
+    } else {
+      setIsOn(true)
+      dispatch(updateObjectStore({
+        [ OBJECT_STORE_EXTENSION_IDS.TODO_LIST ]: {
+          [ _id ]: {
+            ...localTodoListState,
+            isOn: true,
+            time: {
+              ...localTodoListState.time,
+              lastEdited: Date.now()
+            }
+          }
+        } as IObjectStoreExtensionTodoList
+      }, OBJECT_STORE.EXTENSIONS))
+    }
+  }, [ _id, dispatch, isOn, localTodoListState ])
+
   const reorderTasks = useCallback((tasks: TTask[], startIndex, endIndex) => {
-    const result = Array.from(tasks)
-    const [ removed ] = result.splice(startIndex, 1)
-    result.splice(endIndex, 0, removed)
-    return result
-  }, [])
+    const newTasks = Array.from(tasks)
+    const [ removed ] = newTasks.splice(startIndex, 1)
+    newTasks.splice(endIndex, 0, removed)
+    dispatch(updateObjectStore({
+      [ OBJECT_STORE_EXTENSION_IDS.TODO_LIST ]: {
+        [ _id ]: {
+          ...localTodoListState,
+          tasks: newTasks,
+          time: {
+            ...localTodoListState.time,
+            lastEdited: Date.now()
+          }
+        }
+      } as IObjectStoreExtensionTodoList
+    }, OBJECT_STORE.EXTENSIONS))
+    return newTasks
+  }, [ _id, dispatch, localTodoListState ])
 
   const onDragEnd = useCallback((result) => {
     setTaskIndexBeingDragged(undefined)
@@ -95,9 +147,21 @@ const TodoList = ({ _id }: { _id: string }) => {
       isDone: newIsDone
     }
     setTasks(newTasks)
+    dispatch(updateObjectStore({
+      [ OBJECT_STORE_EXTENSION_IDS.TODO_LIST ]: {
+        [ _id ]: {
+          ...localTodoListState,
+          tasks: newTasks,
+          time: {
+            ...localTodoListState.time,
+            lastEdited: Date.now()
+          }
+        }
+      } as IObjectStoreExtensionTodoList
+    }, OBJECT_STORE.EXTENSIONS))
     if (newIsDone) setTasksMetadata({ ...tasksMetadata, done: tasksMetadata.done + 1 })
     else setTasksMetadata({ ...tasksMetadata, done: tasksMetadata.done - 1 })
-  }, [ tasks, tasksMetadata ])
+  }, [ dispatch, localTodoListState, tasks, tasksMetadata ])
 
   const addTask = useCallback(() => {
     const newTasks = tasks
@@ -111,24 +175,66 @@ const TodoList = ({ _id }: { _id: string }) => {
       title: ''
     })
     setTasks(newTasks)
+    dispatch(updateObjectStore({
+      [ OBJECT_STORE_EXTENSION_IDS.TODO_LIST ]: {
+        [ _id ]: {
+          ...localTodoListState,
+          tasks: newTasks,
+          time: {
+            ...localTodoListState.time,
+            lastEdited: Date.now()
+          }
+        }
+      } as IObjectStoreExtensionTodoList
+    }, OBJECT_STORE.EXTENSIONS))
     setTasksMetadata({ ...tasksMetadata, length: tasksMetadata.length + 1 })
-  }, [ tasks, tasksMetadata ])
+  }, [ _id, dispatch, localTodoListState, tasks, tasksMetadata ])
 
   const deleteTask = useCallback((_id: string) => {
     const newTasks = tasks.filter(task => task._id !== _id), taskToBeDeleted = tasks[ tasks.findIndex(task => task._id === _id) ]
     setTasks(newTasks)
+    dispatch(updateObjectStore({
+      [ OBJECT_STORE_EXTENSION_IDS.TODO_LIST ]: {
+        [ _id ]: {
+          ...localTodoListState,
+          tasks: newTasks,
+          time: {
+            ...localTodoListState.time,
+            lastEdited: Date.now()
+          }
+        }
+      } as IObjectStoreExtensionTodoList
+    }, OBJECT_STORE.EXTENSIONS))
     if (taskToBeDeleted.isDone) setTasksMetadata({ ...tasksMetadata, done: tasksMetadata.done - 1, length: tasksMetadata.length - 1 })
     else setTasksMetadata({ ...tasksMetadata, length: tasksMetadata.length - 1 })
-  }, [ tasks, tasksMetadata ])
+  }, [ dispatch, localTodoListState, tasks, tasksMetadata ])
 
   // Effects:
   useEffect(() => {
     if (localTodoListState && !hasLocalStateLoaded) {
       setIsOn(localTodoListState.isOn)
       setTasks(localTodoListState.tasks)
+      setTasksMetadata({
+        done: localTodoListState.tasks.filter(task => task.isDone).length,
+        length: localTodoListState.tasks.length
+      })
       setHasLocalStateLoaded(true)
     }
   }, [ hasLocalStateLoaded, localTodoListState ])
+
+  useInterval(() => {
+    dispatch(updateObjectStore({
+      [ OBJECT_STORE_EXTENSION_IDS.TODO_LIST ]: {
+        [ _id ]: {
+          ...localTodoListState,
+          time: {
+            ...localTodoListState.time,
+            uptime: localTodoListState.time.uptime + TIME.MINUTE
+          }
+        }
+      } as IObjectStoreExtensionTodoList
+    }, OBJECT_STORE.EXTENSIONS))
+  }, TIME.MINUTE)
 
   useEffect(() => {
     setLCDCharArray(`Tasks: ${ tasksMetadata.done } Done | ${ tasksMetadata.length - tasksMetadata.done } Left`.toUpperCase().split(''))
@@ -155,7 +261,7 @@ const TodoList = ({ _id }: { _id: string }) => {
                 onDragStart={ result => { setTaskIndexBeingDragged(result.source.index) }}
               >
                 <Droppable droppableId='droppable'>
-                  {(provided, snapshot) => (
+                  { provided => (
                     <Tasks
                       { ...provided.droppableProps }
                       ref={ provided.innerRef }
@@ -188,11 +294,7 @@ const TodoList = ({ _id }: { _id: string }) => {
           <Button style={{ margin: 0 }}>
             <Knob
               selected={ false }
-              onClick={() => {
-                playButtonPress()
-                if (isOn) setIsOn(false)
-                else setIsOn(true)
-              }}
+              onClick={ onPowerButtonClick }
             >
               { !isOn ? <MdPowerSettingsNew style={{ color: 'lightseagreen' }} /> : <MdPowerSettingsNew style={{ color: 'palevioletred' }} /> }
             </Knob>
