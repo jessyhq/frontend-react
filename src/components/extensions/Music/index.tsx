@@ -1,5 +1,5 @@
 // Packages:
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import useOuterContextMenu from '../../../hooks/use-outer-context-menu'
 import { useDispatch, useSelector } from 'react-redux'
 import { useInput } from '../../../hooks/use-input'
@@ -22,7 +22,7 @@ import { PLAYER_TYPE } from '../../../constants/extensions/Music'
 
 
 // Redux:
-import { updateContextTarget } from '../../../redux/actions'
+import { updateContextTarget, updateObjectStore } from '../../../redux/actions'
 
 
 // Styles:
@@ -43,6 +43,10 @@ import {
   URLInput,
   Wrapper
 } from './styles'
+import { useInterval } from 'react-use'
+import { TIME } from '../../../constants'
+import { IObjectStoreExtensionMusic } from '../../../indexedDB/types'
+import { OBJECT_STORE } from '../../../constants/indexedDB/objectStores'
 
 
 // Functions:
@@ -58,8 +62,9 @@ const Music = ({ _id }: { _id: string }) => {
   // State:
   const localMusicState = useSelector((state: IState) => state.global.localStorageDb.objectStores.extensions.music[ _id ])
   const contextTarget = useSelector((state: IState) => state.global.contextTarget)
-  const [ isOn, setIsOn ] = useState(true)
-  const [ currentPlayer, setCurrentPlayer ] = useState<PLAYER_TYPE>(PLAYER_TYPE.SPOTIFY)
+  const [ hasLocalStateLoaded, setHasLocalStateLoaded ] = useState(false)
+  const [ isOn, setIsOn ] = useState(false)
+  const [ currentPlayer, setCurrentPlayer ] = useState<PLAYER_TYPE>(PLAYER_TYPE.SOUNDCLOUD)
   const { value: URLValue, bind: bindURLValue, reset: resetURLValue } = useInput('')
   const [ playerURL, setPlayerURL ] = useState({
     APPLE_MUSIC:'https://embed.music.apple.com/us/album/study-music-playlist-ultimate-studying-music-for-concentration/977417407',
@@ -69,20 +74,101 @@ const Music = ({ _id }: { _id: string }) => {
 
   // Functions:
   const handleMusicURL = useCallback((URL: string) => {
+    let newCurrentPlayer = undefined, newPlayerURL = undefined, newURL = undefined
     if (URL.includes('spotify.com')) {
-      setCurrentPlayer(PLAYER_TYPE.SPOTIFY)
-      setPlayerURL({ ...playerURL, SPOTIFY: customSplice(URL, URL.search('spotify.com') + 'spotify.com'.length, 0, '/embed') })
+      newCurrentPlayer = PLAYER_TYPE.SPOTIFY
+      newURL = customSplice(URL, URL.search('spotify.com') + 'spotify.com'.length, 0, '/embed')
+      newPlayerURL = { ...playerURL, SPOTIFY: newURL }
     } else if (URL.includes('music.apple')) {
-      setCurrentPlayer(PLAYER_TYPE.APPLE_MUSIC)
-      setPlayerURL({ ...playerURL, APPLE_MUSIC: customSplice(URL, URL.search('music.apple'), 0, 'embed.') })
+      newCurrentPlayer = PLAYER_TYPE.APPLE_MUSIC
+      newURL = customSplice(URL, URL.search('music.apple'), 0, 'embed.')
+      newPlayerURL = { ...playerURL, APPLE_MUSIC: newURL }
     } else if (URL.search('https://soundcloud.com') === 0 || URL.search('https://m.soundcloud.com') === 0) {
-      setCurrentPlayer(PLAYER_TYPE.SOUNDCLOUD)
-      setPlayerURL({ ...playerURL, SOUNDCLOUD: URL.substring(URL.search('soundcloud.com/') + 'soundcloud.com/'.length) })
+      newCurrentPlayer = PLAYER_TYPE.SOUNDCLOUD
+      newURL = URL.substring(URL.search('soundcloud.com/') + 'soundcloud.com/'.length)
+      newPlayerURL = { ...playerURL, SOUNDCLOUD: newURL }
     } else {
       return
     }
+    setCurrentPlayer(newCurrentPlayer)
+    setPlayerURL(newPlayerURL)
+    dispatch(updateObjectStore({
+      music: {
+          [ _id ]: {
+          ...localMusicState,
+          lastMusic: {
+            option: newCurrentPlayer,
+            URL: ''
+          },
+          time: {
+            ...localMusicState.time,
+            lastEdited: Date.now()
+          }
+        }
+      } as IObjectStoreExtensionMusic
+    }, OBJECT_STORE.EXTENSIONS))
     resetURLValue()
-  }, [ playerURL, resetURLValue ])
+  }, [ _id, dispatch, localMusicState, playerURL, resetURLValue ])
+
+  const onPowerButtonClick = useCallback(() => {
+    playButtonPress()
+    if (isOn) {
+      setIsOn(false)
+      dispatch(updateObjectStore({
+        music: { [ _id ]: { ...localMusicState, isOn: false, time: { ...localMusicState.time, lastEdited: Date.now() } } } as IObjectStoreExtensionMusic
+      }, OBJECT_STORE.EXTENSIONS))
+    } else {
+      setIsOn(true)
+      dispatch(updateObjectStore({
+        music: { [ _id ]: { ...localMusicState, isOn: true, time: { ...localMusicState.time, lastEdited: Date.now() } } } as IObjectStoreExtensionMusic
+      }, OBJECT_STORE.EXTENSIONS))
+    }
+  }, [ _id, dispatch, isOn, localMusicState ])
+
+  const onMusicOption = useCallback((newPlayer: PLAYER_TYPE) => {
+    if (isOn && currentPlayer !== newPlayer) {
+      playButtonPress()
+      setCurrentPlayer(newPlayer)
+      dispatch(updateObjectStore({
+        music: {
+          [ _id ]: {
+            ...localMusicState,
+            lastMusic: {
+              ...localMusicState.lastMusic,
+              option: newPlayer
+            },
+            time: {
+              ...localMusicState.time,
+              lastEdited: Date.now()
+            }
+          }
+        } as IObjectStoreExtensionMusic,
+      }, OBJECT_STORE.EXTENSIONS))
+    }
+  }, [ _id, currentPlayer, dispatch, isOn, localMusicState ])
+
+  const onCustomMusicURL = useCallback(() => {
+    if (isOn && URLValue.length > 0 && isUrl(URLValue)) {
+      playButtonPress()
+      handleMusicURL(URLValue)
+    }
+  }, [ URLValue, handleMusicURL, isOn ])
+
+  // Effects:
+  useEffect(() => {
+    if (localMusicState && !hasLocalStateLoaded) {
+      setIsOn(localMusicState.isOn)
+      if (localMusicState.lastMusic.URL) handleMusicURL(localMusicState.lastMusic.URL)
+      else setCurrentPlayer(localMusicState.lastMusic.option)
+      setHasLocalStateLoaded(true)
+    }
+  }, [ handleMusicURL, hasLocalStateLoaded, localMusicState ])
+
+  useInterval(() => {
+    dispatch(updateObjectStore({
+      music: { [ _id ]: { ...localMusicState, time: { ...localMusicState.time, uptime: localMusicState.time.uptime + TIME.MINUTE } } } as IObjectStoreExtensionMusic
+    }, OBJECT_STORE.EXTENSIONS))
+  }, TIME.MINUTE)
 
   // Return:
   return (
@@ -102,7 +188,7 @@ const Music = ({ _id }: { _id: string }) => {
               allow='autoplay *; encrypted-media *;'
               frameBorder='0'
               height='160'
-              style={{ position: 'relative', zIndex: 1, height: '115px', overflow: 'hidden', background: 'transparent', borderRadius: '10px', transform: 'scale(0.88)' }}
+              style={{ position: 'relative', zIndex: 1, height: '120px', overflow: 'hidden', background: 'transparent', borderRadius: '10px', transform: 'scale(0.88)' }}
               sandbox='allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation-by-user-activation'
               src={ playerURL.APPLE_MUSIC }
             ></iframe>
@@ -125,7 +211,7 @@ const Music = ({ _id }: { _id: string }) => {
             &&
             <iframe
               title='soundcloud-player'
-              style={{ position: 'relative', zIndex: 1, minWidth: '345px', height: '130px', borderRadius: '10px', transform: 'scale(0.75)' }}
+              style={{ position: 'relative', zIndex: 1, minWidth: '430px', height: '170px', borderRadius: '10px', transform: 'scale(0.6)' }}
               scrolling='no'
               frameBorder='no'
               allow='autoplay'
@@ -138,11 +224,7 @@ const Music = ({ _id }: { _id: string }) => {
             <Button>
               <Knob
                 selected={ false }
-                onClick={() => {
-                  playButtonPress()
-                  if (isOn) setIsOn(false)
-                  else setIsOn(true)
-                }}
+                onClick={ onPowerButtonClick }
               >
                 { !isOn ? <MdPowerSettingsNew style={{ color: 'lightseagreen' }} /> : <MdPowerSettingsNew style={{ color: 'palevioletred' }} /> }
               </Knob>
@@ -150,12 +232,7 @@ const Music = ({ _id }: { _id: string }) => {
             <Button>
               <Knob
                 selected={ currentPlayer === PLAYER_TYPE.APPLE_MUSIC || !isOn }
-                onClick={() => {
-                  if (isOn && currentPlayer !== PLAYER_TYPE.APPLE_MUSIC) {
-                    playButtonPress()
-                  }
-                  setCurrentPlayer(PLAYER_TYPE.APPLE_MUSIC)
-                }}
+                onClick={ () => onMusicOption(PLAYER_TYPE.APPLE_MUSIC) }
               >
                 <RiAppleFill />
               </Knob>
@@ -163,12 +240,7 @@ const Music = ({ _id }: { _id: string }) => {
             <Button>
               <Knob
                 selected={ currentPlayer === PLAYER_TYPE.SPOTIFY || !isOn }
-                onClick={() => {
-                  if (isOn && currentPlayer !== PLAYER_TYPE.SPOTIFY) {
-                    playButtonPress()
-                  }
-                  setCurrentPlayer(PLAYER_TYPE.SPOTIFY)
-                }}
+                onClick={ () => onMusicOption(PLAYER_TYPE.SPOTIFY) }
               >
                 <RiSpotifyFill />
               </Knob>
@@ -176,12 +248,7 @@ const Music = ({ _id }: { _id: string }) => {
             <Button>
               <Knob
                 selected={ currentPlayer === PLAYER_TYPE.SOUNDCLOUD || !isOn }
-                onClick={() => {
-                  if (isOn && currentPlayer !== PLAYER_TYPE.SOUNDCLOUD) {
-                    playButtonPress()
-                  }
-                  setCurrentPlayer(PLAYER_TYPE.SOUNDCLOUD)
-                }}
+                onClick={ () => onMusicOption(PLAYER_TYPE.SOUNDCLOUD) }
               >
                 <RiSoundcloudFill />
               </Knob>
@@ -193,12 +260,7 @@ const Music = ({ _id }: { _id: string }) => {
             </Button>
             <Button><Knob
               selected={ !isOn || URLValue.length === 0 || !isUrl(URLValue) }
-              onClick={() => {
-                if (isOn && URLValue.length > 0 && isUrl(URLValue)) {
-                  playButtonPress()
-                  handleMusicURL(URLValue)
-                }
-              }}
+              onClick={ onCustomMusicURL }
             ><MdPlayArrow /></Knob></Button>
           </span>
         </ButtonArea>

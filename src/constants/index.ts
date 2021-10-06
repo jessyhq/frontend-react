@@ -1,2 +1,8 @@
 // Exports:
-export const a = 1
+export enum TIME {
+  MILLISECOND = 1,
+  SECOND = 1000 * TIME.MILLISECOND,
+  MINUTE = 60 * TIME.SECOND,
+  HOUR = 60 * TIME.MINUTE,
+  DAY = 24 * TIME.HOUR
+}

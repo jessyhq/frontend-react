@@ -24,7 +24,10 @@ export interface ICoreObjectStore {
 export interface IMusicState {
   color: string
   isOn: boolean
-  lastMusicOption: PLAYER_TYPE
+  lastMusic: {
+    option: PLAYER_TYPE,
+    URL?: string
+  }
   time: {
     createdAt: number
     lastEdited: number

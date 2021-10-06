@@ -17,7 +17,9 @@ export const DEFAULT_EXTENSION_STATE: { MUSIC: IMusicState, TODO_LIST: ITodoList
   MUSIC: {
     color: COLORS.WHITE,
     isOn: true,
-    lastMusicOption: PLAYER_TYPE.SPOTIFY,
+    lastMusic: {
+      option: PLAYER_TYPE.SPOTIFY
+    },
     time: {
       createdAt: Date.now(),
       lastEdited: Date.now(),
@@ -54,11 +56,11 @@ export const populateIndexedDB = async (indexedDB: DB) => {
       }),
       tx[ OBJECT_STORE.EXTENSIONS ].objectStore<{ _id: OBJECT_STORE_EXTENSION_IDS, value: IObjectStoreExtensionMusic }>(OBJECT_STORE.EXTENSIONS).add({
         _id: OBJECT_STORE_EXTENSION_IDS.MUSIC,
-        value: { [ IDList[0] ]: DEFAULT_EXTENSION_STATE.MUSIC, [ IDList[1] ]: DEFAULT_EXTENSION_STATE.MUSIC, [ IDList[2] ]: DEFAULT_EXTENSION_STATE.MUSIC }
+        value: { [ IDList[0] ]: DEFAULT_EXTENSION_STATE.MUSIC }
       }),
       tx[ OBJECT_STORE.EXTENSIONS ].objectStore<{ _id: OBJECT_STORE_EXTENSION_IDS, value: IObjectStoreExtensionTodoList }>(OBJECT_STORE.EXTENSIONS).add({
         _id: OBJECT_STORE_EXTENSION_IDS.TODO_LIST,
-        value: { [ IDList[0] ]: DEFAULT_EXTENSION_STATE.TODO_LIST, [ IDList[1] ]: DEFAULT_EXTENSION_STATE.TODO_LIST, [ IDList[2] ]: DEFAULT_EXTENSION_STATE.TODO_LIST }
+        value: { [ IDList[1] ]: DEFAULT_EXTENSION_STATE.TODO_LIST, [ IDList[2] ]: DEFAULT_EXTENSION_STATE.TODO_LIST }
       })
     ])
   } catch(e) {
