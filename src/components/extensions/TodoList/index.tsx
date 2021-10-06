@@ -58,7 +58,9 @@ const TodoList = ({ _id }: { _id: string }) => {
   })
 
   // State:
+  const localTodoListState = useSelector((state: IState) => state.global.localStorageDb.objectStores.extensions.todo_list[ _id ])
   const contextTarget = useSelector((state: IState) => state.global.contextTarget)
+  const [ hasLocalStateLoaded, setHasLocalStateLoaded ] = useState(false)
   const [ isOn, setIsOn ] = useState(true)
   const [ tasks, setTasks ] = useState<TTask[]>([])
   const [ tasksMetadata, setTasksMetadata ] = useState({
@@ -120,6 +122,14 @@ const TodoList = ({ _id }: { _id: string }) => {
   }, [ tasks, tasksMetadata ])
 
   // Effects:
+  useEffect(() => {
+    if (localTodoListState && !hasLocalStateLoaded) {
+      setIsOn(localTodoListState.isOn)
+      setTasks(localTodoListState.tasks)
+      setHasLocalStateLoaded(true)
+    }
+  }, [ hasLocalStateLoaded, localTodoListState ])
+
   useEffect(() => {
     setLCDCharArray(`Tasks: ${ tasksMetadata.done } Done | ${ tasksMetadata.length - tasksMetadata.done } Left`.toUpperCase().split(''))
   }, [ tasksMetadata.done, tasksMetadata.length ])

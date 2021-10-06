@@ -6,6 +6,7 @@ import { useInput } from '../../../hooks/use-input'
 import { customSplice } from '../../../util/customSplice'
 import isUrl from 'is-url'
 import { playButtonPress } from '../../../util/soundEffects'
+import { useInterval } from 'react-use'
 
 
 // Typescript:
@@ -19,6 +20,9 @@ import { RiSpotifyFill, RiAppleFill, RiSoundcloudFill } from 'react-icons/ri'
 
 // Constants:
 import { PLAYER_TYPE } from '../../../constants/extensions/Music'
+import { TIME } from '../../../constants'
+import { IObjectStoreExtensionMusic } from '../../../indexedDB/types'
+import { OBJECT_STORE } from '../../../constants/indexedDB/objectStores'
 
 
 // Redux:
@@ -43,10 +47,6 @@ import {
   URLInput,
   Wrapper
 } from './styles'
-import { useInterval } from 'react-use'
-import { TIME } from '../../../constants'
-import { IObjectStoreExtensionMusic } from '../../../indexedDB/types'
-import { OBJECT_STORE } from '../../../constants/indexedDB/objectStores'
 
 
 // Functions:
