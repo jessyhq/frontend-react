@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from 'react-redux'
 import useOuterContextMenu from '../../../hooks/use-outer-context-menu'
 import { Scrollbars } from 'react-custom-scrollbars-2'
 import { playButtonPress } from '../../../util/soundEffects'
-import { useInterval } from 'react-use'
 import { DragDropContext, Droppable } from 'react-beautiful-dnd'
 
 
@@ -20,7 +19,6 @@ import { MdPowerSettingsNew } from 'react-icons/md'
 
 // Constants:
 import { OBJECT_STORE, EXTENSION_TYPE } from '../../../constants/indexedDB/objectStores'
-import { TIME } from '../../../constants'
 
 
 // Components:
@@ -221,20 +219,6 @@ const TodoList = ({ _id }: { _id: string }) => {
       setHasLocalStateLoaded(true)
     }
   }, [ _id, hasLocalStateLoaded, localTodoListState ])
-
-  useInterval(() => {
-    dispatch(updateObjectStore({
-      [ EXTENSION_TYPE.TODO_LIST ]: {
-        [ _id ]: {
-          ...localTodoListState,
-          time: {
-            ...localTodoListState.time,
-            uptime: localTodoListState.time.uptime + TIME.MINUTE
-          }
-        }
-      } as IObjectStoreExtensionTodoList
-    }, OBJECT_STORE.EXTENSIONS))
-  }, TIME.MINUTE)
 
   useEffect(() => {
     setLCDCharArray(`Tasks: ${ tasksMetadata.done } Done | ${ tasksMetadata.length - tasksMetadata.done } Left`.toUpperCase().split(''))

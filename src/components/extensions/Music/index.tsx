@@ -6,7 +6,6 @@ import { useInput } from '../../../hooks/use-input'
 import { customSplice } from '../../../util/customSplice'
 import isUrl from 'is-url'
 import { playButtonPress } from '../../../util/soundEffects'
-import { useInterval } from 'react-use'
 
 
 // Typescript:
@@ -21,7 +20,6 @@ import { RiSpotifyFill, RiAppleFill, RiSoundcloudFill } from 'react-icons/ri'
 
 // Constants:
 import { PLAYER_TYPE } from '../../../constants/extensions/Music'
-import { TIME } from '../../../constants'
 import { OBJECT_STORE, EXTENSION_TYPE } from '../../../constants/indexedDB/objectStores'
 
 
@@ -181,20 +179,6 @@ const Music = ({ _id }: { _id: string }) => {
       setHasLocalStateLoaded(true)
     }
   }, [ handleMusicURL, hasLocalStateLoaded, localMusicState ])
-
-  useInterval(() => {
-    dispatch(updateObjectStore({
-      [ EXTENSION_TYPE.MUSIC ]: {
-        [ _id ]: {
-          ...localMusicState,
-          time: {
-            ...localMusicState.time,
-            uptime: localMusicState.time.uptime + TIME.MINUTE
-          }
-        }
-      } as IObjectStoreExtensionMusic
-    }, OBJECT_STORE.EXTENSIONS))
-  }, TIME.MINUTE)
 
   // Return:
   return (
