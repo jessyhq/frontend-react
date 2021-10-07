@@ -140,12 +140,9 @@ const TodoList = ({ _id }: { _id: string }) => {
     ))
   }, [ reorderTasks, tasks ])
 
-  const updateTask = useCallback((_id: string, newTask: Partial<TTask>) => {
-    const newTasks = tasks, taskIndex = newTasks.findIndex(task => task._id === _id)
-    newTasks[ taskIndex ] = {
-      ...newTasks[ taskIndex ],
-      ...newTask
-    }
+  const updateTask = useCallback((taskID: string, newTask: Partial<TTask>) => {
+    const newTasks = tasks, taskIndex = newTasks.findIndex(task => task._id === taskID)
+    newTasks[ taskIndex ] = { ...newTasks[ taskIndex ], ...newTask }
     setTasks(newTasks)
     dispatch(updateObjectStore({
       [ OBJECT_STORE_EXTENSION_IDS.TODO_LIST ]: {
@@ -163,7 +160,7 @@ const TodoList = ({ _id }: { _id: string }) => {
       if (newTask.isDone) setTasksMetadata({ ...tasksMetadata, done: tasksMetadata.done + 1 })
       else setTasksMetadata({ ...tasksMetadata, done: tasksMetadata.done - 1 })
     }
-  }, [ dispatch, localTodoListState, tasks, tasksMetadata ])
+  }, [ _id, dispatch, localTodoListState, tasks, tasksMetadata ])
 
   const addTask = useCallback(() => {
     const newTasks = tasks
@@ -193,8 +190,8 @@ const TodoList = ({ _id }: { _id: string }) => {
     setTasksMetadata({ ...tasksMetadata, length: tasksMetadata.length + 1 })
   }, [ _id, dispatch, localTodoListState, tasks, tasksMetadata ])
 
-  const deleteTask = useCallback((_id: string) => {
-    const newTasks = tasks.filter(task => task._id !== _id), taskToBeDeleted = tasks[ tasks.findIndex(task => task._id === _id) ]
+  const deleteTask = useCallback((taskID: string) => {
+    const newTasks = tasks.filter(task => task._id !== taskID), taskToBeDeleted = tasks[ tasks.findIndex(task => task._id === taskID) ]
     setTasks(newTasks)
     dispatch(updateObjectStore({
       [ OBJECT_STORE_EXTENSION_IDS.TODO_LIST ]: {
@@ -210,7 +207,7 @@ const TodoList = ({ _id }: { _id: string }) => {
     }, OBJECT_STORE.EXTENSIONS))
     if (taskToBeDeleted.isDone) setTasksMetadata({ ...tasksMetadata, done: tasksMetadata.done - 1, length: tasksMetadata.length - 1 })
     else setTasksMetadata({ ...tasksMetadata, length: tasksMetadata.length - 1 })
-  }, [ dispatch, localTodoListState, tasks, tasksMetadata ])
+  }, [ _id, dispatch, localTodoListState, tasks, tasksMetadata ])
 
   // Effects:
   useEffect(() => {

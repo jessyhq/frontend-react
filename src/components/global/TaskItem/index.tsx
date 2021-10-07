@@ -92,9 +92,9 @@ const TaskItem = ({ index, task, updateTask, deleteTask, taskIndexBeingDragged }
   const onTaskTitleEdited = useCallback(() => {
     if (taskTitle.length > 0) {
       setIsEditing(false)
-      updateTask(task._id, { isDone: !isTaskDone })
+      updateTask(task._id, { title: taskTitle })
     }
-  }, [ isTaskDone, task._id, taskTitle.length, updateTask ])
+  }, [ task._id, taskTitle, updateTask ])
 
   // Effects:
   useEffect(() => {
