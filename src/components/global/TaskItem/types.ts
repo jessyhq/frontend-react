@@ -6,7 +6,7 @@ import { TTask } from '../../../types/taskItem'
 export interface ITaskItemProps {
   index: number
   task: TTask
-  updateTaskDoneStatus: (_id: string, newIsDone: boolean) => void
+  updateTask: (_id: string, newTask: Partial<TTask>) => void
   deleteTask: (_id: string) => void
   taskIndexBeingDragged?: number
 }

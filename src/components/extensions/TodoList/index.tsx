@@ -58,7 +58,7 @@ import {
 const TodoList = ({ _id }: { _id: string }) => {
   // Constants:
   const dispatch = useDispatch()
-  
+
   // Ref:
   const wrapperRef = useOuterContextMenu((e) => {
     if (contextTarget[ _id ] === true) dispatch(updateContextTarget({ [_id ]: false }))
@@ -140,11 +140,11 @@ const TodoList = ({ _id }: { _id: string }) => {
     ))
   }, [ reorderTasks, tasks ])
 
-  const updateTaskDoneStatus = useCallback((_id: string, newIsDone: boolean) => {
+  const updateTask = useCallback((_id: string, newTask: Partial<TTask>) => {
     const newTasks = tasks, taskIndex = newTasks.findIndex(task => task._id === _id)
     newTasks[ taskIndex ] = {
       ...newTasks[ taskIndex ],
-      isDone: newIsDone
+      ...newTask
     }
     setTasks(newTasks)
     dispatch(updateObjectStore({
@@ -159,8 +159,10 @@ const TodoList = ({ _id }: { _id: string }) => {
         }
       } as IObjectStoreExtensionTodoList
     }, OBJECT_STORE.EXTENSIONS))
-    if (newIsDone) setTasksMetadata({ ...tasksMetadata, done: tasksMetadata.done + 1 })
-    else setTasksMetadata({ ...tasksMetadata, done: tasksMetadata.done - 1 })
+    if (newTask.isDone !== undefined) {
+      if (newTask.isDone) setTasksMetadata({ ...tasksMetadata, done: tasksMetadata.done + 1 })
+      else setTasksMetadata({ ...tasksMetadata, done: tasksMetadata.done - 1 })
+    }
   }, [ dispatch, localTodoListState, tasks, tasksMetadata ])
 
   const addTask = useCallback(() => {
@@ -168,6 +170,7 @@ const TodoList = ({ _id }: { _id: string }) => {
     newTasks.unshift({
       _id: (Math.random() + 1).toString(36).substring(2),
       isDone: false,
+      parentID: _id,
       time: {
         createdAt: Date.now(),
         lastEdited: Date.now()
@@ -220,7 +223,7 @@ const TodoList = ({ _id }: { _id: string }) => {
       })
       setHasLocalStateLoaded(true)
     }
-  }, [ hasLocalStateLoaded, localTodoListState ])
+  }, [ _id, hasLocalStateLoaded, localTodoListState ])
 
   useInterval(() => {
     dispatch(updateObjectStore({
@@ -260,7 +263,7 @@ const TodoList = ({ _id }: { _id: string }) => {
                 onDragEnd={ onDragEnd }
                 onDragStart={ result => { setTaskIndexBeingDragged(result.source.index) }}
               >
-                <Droppable droppableId='droppable'>
+                <Droppable droppableId={ `${ _id }-droppable` }>
                   { provided => (
                     <Tasks
                       { ...provided.droppableProps }
@@ -270,12 +273,12 @@ const TodoList = ({ _id }: { _id: string }) => {
                         <Placeholder>add a new task</Placeholder>
                       </AddTask>
                       {
-                        tasks.map((task, index) => (
+                        tasks.filter(task => task.parentID === _id).map((task, index) => (
                           <TaskItem
                             index={ index }
                             key={ task._id }
                             task={ task }
-                            updateTaskDoneStatus={ updateTaskDoneStatus }
+                            updateTask={ updateTask }
                             deleteTask={ deleteTask }
                             taskIndexBeingDragged={ taskIndexBeingDragged }
                           />

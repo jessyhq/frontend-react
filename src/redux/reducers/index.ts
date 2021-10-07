@@ -109,7 +109,6 @@ const reducer = (state = initialState, action: IAction) => {
             objectStores: {
               ...state.global.localStorageDb.objectStores,
               [ OBJECT_STORE.EXTENSIONS ]: {
-                ...state.global.localStorageDb.objectStores[ OBJECT_STORE.EXTENSIONS ],
                 ...action.payload
               }
             }

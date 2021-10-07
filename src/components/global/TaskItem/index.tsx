@@ -43,7 +43,7 @@ import {
 // Functions:
 d3Select.prototype.transition = d3Transition
 
-const TaskItem = ({ index, task, updateTaskDoneStatus, deleteTask, taskIndexBeingDragged }: ITaskItemProps) => {
+const TaskItem = ({ index, task, updateTask, deleteTask, taskIndexBeingDragged }: ITaskItemProps) => {
   // Ref:
   const middleRef = useRef<HTMLDivElement | null>(null)
   const lineSVGRef = useRef<SVGSVGElement | null>(null)
@@ -88,6 +88,13 @@ const TaskItem = ({ index, task, updateTaskDoneStatus, deleteTask, taskIndexBein
       )
     setScribble(curve)
   }, [])
+
+  const onTaskTitleEdited = useCallback(() => {
+    if (taskTitle.length > 0) {
+      setIsEditing(false)
+      updateTask(task._id, { isDone: !isTaskDone })
+    }
+  }, [ isTaskDone, task._id, taskTitle.length, updateTask ])
 
   // Effects:
   useEffect(() => {
@@ -206,7 +213,7 @@ const TaskItem = ({ index, task, updateTaskDoneStatus, deleteTask, taskIndexBein
               onClick={() => {
                 if (!isEditing && canToggleTaskDone) {
                   setIsTaskDone(!isTaskDone)
-                  updateTaskDoneStatus(task._id, !isTaskDone)
+                  updateTask(task._id, { isDone: !isTaskDone })
                 }
               }}
             >
@@ -231,7 +238,7 @@ const TaskItem = ({ index, task, updateTaskDoneStatus, deleteTask, taskIndexBein
           <OptionsEdge shouldHideWhenNotHovering={ isEditing }>
             {
               isEditing ?
-                <DoneIcon isvisible={ `${ taskTitle.length > 0 }` } onClick={ () => taskTitle.length > 0 ? setIsEditing(false) : null } />
+                <DoneIcon isvisible={ `${ taskTitle.length > 0 }` } onClick={ onTaskTitleEdited } />
               :
                 <EditIcon isvisible={ `${ !isTaskDone }` } onClick={
                     () => {

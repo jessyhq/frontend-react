@@ -53,12 +53,11 @@ export const updateObjectStore = (
       dispatch({ type: UPDATE_CORE_OBJECT_STORE, payload })
     } else if (objectStore === OBJECT_STORE.EXTENSIONS) {
       const tx = db.transaction(OBJECT_STORE.EXTENSIONS, 'readonly')
-      const [ reduxMusic, reduxTodoList ] = [ getState().global.localStorageDb.objectStores.extensions.music, getState().global.localStorageDb.objectStores.extensions.todo_list ]
       const indexedDBMusic = (await tx.objectStore(OBJECT_STORE.EXTENSIONS).get(OBJECT_STORE_EXTENSION_IDS.MUSIC)).value as IObjectStoreExtensionMusic
       const indexedDBTodoList = (await tx.objectStore(OBJECT_STORE.EXTENSIONS).get(OBJECT_STORE_EXTENSION_IDS.TODO_LIST)).value as IObjectStoreExtensionTodoList
-      if (payload.music && !isEqual(payload.music, indexedDBMusic)) await db.transaction(OBJECT_STORE.EXTENSIONS, 'readwrite').objectStore(OBJECT_STORE.EXTENSIONS).put({ _id: OBJECT_STORE_EXTENSION_IDS.MUSIC, value: payload.music })
-      if (payload.todo_list && !isEqual(payload.todo_list, indexedDBTodoList)) await db.transaction(OBJECT_STORE.EXTENSIONS, 'readwrite').objectStore(OBJECT_STORE.EXTENSIONS).put({ _id: OBJECT_STORE_EXTENSION_IDS.TODO_LIST, value: payload.todo_list })
-      dispatch({ type: UPDATE_EXTENSIONS_OBJECT_STORE, payload: { music: { ...reduxMusic, ...payload.music }, todo_list: { ...reduxTodoList, ...payload.todo_list } } })
+      if (payload.music && !isEqual(payload.music, indexedDBMusic)) await db.transaction(OBJECT_STORE.EXTENSIONS, 'readwrite').objectStore(OBJECT_STORE.EXTENSIONS).put({ _id: OBJECT_STORE_EXTENSION_IDS.MUSIC, value: { ...indexedDBMusic, ...payload.music } })
+      if (payload.todo_list && !isEqual(payload.todo_list, indexedDBTodoList)) await db.transaction(OBJECT_STORE.EXTENSIONS, 'readwrite').objectStore(OBJECT_STORE.EXTENSIONS).put({ _id: OBJECT_STORE_EXTENSION_IDS.TODO_LIST, value: { ...indexedDBTodoList, ...payload.todo_list } })
+      dispatch({ type: UPDATE_EXTENSIONS_OBJECT_STORE, payload: { music: { ...indexedDBMusic, ...payload.music }, todo_list: { ...indexedDBTodoList, ...payload.todo_list } } })
     }
   }
 }

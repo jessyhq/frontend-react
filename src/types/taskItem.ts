@@ -7,6 +7,7 @@ export type TTask = {
     icon: string
     name: string
   }
+  parentID: string
   priority?: number
   isDone: boolean
   subTasks?: TSubTask[]
