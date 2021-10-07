@@ -4,9 +4,8 @@ import GridLayout from 'react-grid-layout'
 
 
 // Constants:
-import { EXTENSION_TYPE } from '../constants/extensions'
 import { PLAYER_TYPE } from '../constants/extensions/Music'
-import { OBJECT_STORE_CORE_IDS, OBJECT_STORE_EXTENSION_IDS, OBJECT_STORE } from '../constants/indexedDB/objectStores'
+import { OBJECT_STORE_CORE_IDS, EXTENSION_TYPE, OBJECT_STORE } from '../constants/indexedDB/objectStores'
 import { TTask } from '../types/taskItem'
 
 
@@ -54,9 +53,11 @@ export interface IObjectStoreExtensionTodoList {
   [ _id: string ]: ITodoListState
 }
 
+export type TObjectStoreExtension = IObjectStoreExtensionMusic | IObjectStoreExtensionTodoList
+
 export interface IExtensionsObjectStore {
-  [ OBJECT_STORE_EXTENSION_IDS.MUSIC ]: IObjectStoreExtensionMusic
-  [ OBJECT_STORE_EXTENSION_IDS.TODO_LIST ]: IObjectStoreExtensionTodoList
+  [ EXTENSION_TYPE.MUSIC ]: IObjectStoreExtensionMusic
+  [ EXTENSION_TYPE.TODO_LIST ]: IObjectStoreExtensionTodoList
 }
 
 export interface ILocalStorageDb {

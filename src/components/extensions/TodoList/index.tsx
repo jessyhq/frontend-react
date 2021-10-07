@@ -19,7 +19,7 @@ import { MdPowerSettingsNew } from 'react-icons/md'
 
 
 // Constants:
-import { OBJECT_STORE, OBJECT_STORE_EXTENSION_IDS } from '../../../constants/indexedDB/objectStores'
+import { OBJECT_STORE, EXTENSION_TYPE } from '../../../constants/indexedDB/objectStores'
 import { TIME } from '../../../constants'
 
 
@@ -83,7 +83,7 @@ const TodoList = ({ _id }: { _id: string }) => {
     if (isOn) {
       setIsOn(false)
       dispatch(updateObjectStore({
-        [ OBJECT_STORE_EXTENSION_IDS.TODO_LIST ]: {
+        [ EXTENSION_TYPE.TODO_LIST ]: {
           [ _id ]: {
             ...localTodoListState,
             isOn: false,
@@ -97,7 +97,7 @@ const TodoList = ({ _id }: { _id: string }) => {
     } else {
       setIsOn(true)
       dispatch(updateObjectStore({
-        [ OBJECT_STORE_EXTENSION_IDS.TODO_LIST ]: {
+        [ EXTENSION_TYPE.TODO_LIST ]: {
           [ _id ]: {
             ...localTodoListState,
             isOn: true,
@@ -116,7 +116,7 @@ const TodoList = ({ _id }: { _id: string }) => {
     const [ removed ] = newTasks.splice(startIndex, 1)
     newTasks.splice(endIndex, 0, removed)
     dispatch(updateObjectStore({
-      [ OBJECT_STORE_EXTENSION_IDS.TODO_LIST ]: {
+      [ EXTENSION_TYPE.TODO_LIST ]: {
         [ _id ]: {
           ...localTodoListState,
           tasks: newTasks,
@@ -145,7 +145,7 @@ const TodoList = ({ _id }: { _id: string }) => {
     newTasks[ taskIndex ] = { ...newTasks[ taskIndex ], ...newTask }
     setTasks(newTasks)
     dispatch(updateObjectStore({
-      [ OBJECT_STORE_EXTENSION_IDS.TODO_LIST ]: {
+      [ EXTENSION_TYPE.TODO_LIST ]: {
         [ _id ]: {
           ...localTodoListState,
           tasks: newTasks,
@@ -176,7 +176,7 @@ const TodoList = ({ _id }: { _id: string }) => {
     })
     setTasks(newTasks)
     dispatch(updateObjectStore({
-      [ OBJECT_STORE_EXTENSION_IDS.TODO_LIST ]: {
+      [ EXTENSION_TYPE.TODO_LIST ]: {
         [ _id ]: {
           ...localTodoListState,
           tasks: newTasks,
@@ -191,10 +191,10 @@ const TodoList = ({ _id }: { _id: string }) => {
   }, [ _id, dispatch, localTodoListState, tasks, tasksMetadata ])
 
   const deleteTask = useCallback((taskID: string) => {
-    const newTasks = tasks.filter(task => task._id !== taskID), taskToBeDeleted = tasks[ tasks.findIndex(task => task._id === taskID) ]
+    const newTasks = tasks.filter(task => task._id !== _id), taskToBeDeleted = tasks[ tasks.findIndex(task => task._id === _id) ]
     setTasks(newTasks)
     dispatch(updateObjectStore({
-      [ OBJECT_STORE_EXTENSION_IDS.TODO_LIST ]: {
+      [ EXTENSION_TYPE.TODO_LIST ]: {
         [ _id ]: {
           ...localTodoListState,
           tasks: newTasks,
@@ -224,7 +224,7 @@ const TodoList = ({ _id }: { _id: string }) => {
 
   useInterval(() => {
     dispatch(updateObjectStore({
-      [ OBJECT_STORE_EXTENSION_IDS.TODO_LIST ]: {
+      [ EXTENSION_TYPE.TODO_LIST ]: {
         [ _id ]: {
           ...localTodoListState,
           time: {

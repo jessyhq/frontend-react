@@ -22,6 +22,7 @@ import ROUTES from './routes/routes'
 
 
 // Components:
+import Uptime from './components/global/Uptime'
 import Navbar from './components/global/Navbar'
 import ContextMenu from './components/global/ContextMenu'
 import App from './views/App'
@@ -68,6 +69,7 @@ ReactDOM.render(
     <Provider store={ store }>
       <Router>
         <GlobalStyle />
+        <Uptime />
         <Navbar />
         <ContextMenu />
         <Switch>

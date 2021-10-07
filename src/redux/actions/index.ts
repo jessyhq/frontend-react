@@ -27,7 +27,7 @@ import {
   UPDATE_CORE_OBJECT_STORE,
   UPDATE_EXTENSIONS_OBJECT_STORE
 } from '../action-types'
-import { OBJECT_STORE, OBJECT_STORE_CORE_IDS, OBJECT_STORE_EXTENSION_IDS } from '../../constants/indexedDB/objectStores'
+import { OBJECT_STORE, OBJECT_STORE_CORE_IDS, EXTENSION_TYPE } from '../../constants/indexedDB/objectStores'
 
 
 // Exports:
@@ -53,10 +53,10 @@ export const updateObjectStore = (
       dispatch({ type: UPDATE_CORE_OBJECT_STORE, payload })
     } else if (objectStore === OBJECT_STORE.EXTENSIONS) {
       const tx = db.transaction(OBJECT_STORE.EXTENSIONS, 'readonly')
-      const indexedDBMusic = (await tx.objectStore(OBJECT_STORE.EXTENSIONS).get(OBJECT_STORE_EXTENSION_IDS.MUSIC)).value as IObjectStoreExtensionMusic
-      const indexedDBTodoList = (await tx.objectStore(OBJECT_STORE.EXTENSIONS).get(OBJECT_STORE_EXTENSION_IDS.TODO_LIST)).value as IObjectStoreExtensionTodoList
-      if (payload.music && !isEqual(payload.music, indexedDBMusic)) await db.transaction(OBJECT_STORE.EXTENSIONS, 'readwrite').objectStore(OBJECT_STORE.EXTENSIONS).put({ _id: OBJECT_STORE_EXTENSION_IDS.MUSIC, value: { ...indexedDBMusic, ...payload.music } })
-      if (payload.todo_list && !isEqual(payload.todo_list, indexedDBTodoList)) await db.transaction(OBJECT_STORE.EXTENSIONS, 'readwrite').objectStore(OBJECT_STORE.EXTENSIONS).put({ _id: OBJECT_STORE_EXTENSION_IDS.TODO_LIST, value: { ...indexedDBTodoList, ...payload.todo_list } })
+      const indexedDBMusic = (await tx.objectStore(OBJECT_STORE.EXTENSIONS).get(EXTENSION_TYPE.MUSIC)).value as IObjectStoreExtensionMusic
+      const indexedDBTodoList = (await tx.objectStore(OBJECT_STORE.EXTENSIONS).get(EXTENSION_TYPE.TODO_LIST)).value as IObjectStoreExtensionTodoList
+      if (payload.music && !isEqual(payload.music, indexedDBMusic)) await db.transaction(OBJECT_STORE.EXTENSIONS, 'readwrite').objectStore(OBJECT_STORE.EXTENSIONS).put({ _id: EXTENSION_TYPE.MUSIC, value: { ...indexedDBMusic, ...payload.music } })
+      if (payload.todo_list && !isEqual(payload.todo_list, indexedDBTodoList)) await db.transaction(OBJECT_STORE.EXTENSIONS, 'readwrite').objectStore(OBJECT_STORE.EXTENSIONS).put({ _id: EXTENSION_TYPE.TODO_LIST, value: { ...indexedDBTodoList, ...payload.todo_list } })
       dispatch({ type: UPDATE_EXTENSIONS_OBJECT_STORE, payload: { music: { ...indexedDBMusic, ...payload.music }, todo_list: { ...indexedDBTodoList, ...payload.todo_list } } })
     }
   }

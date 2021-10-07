@@ -5,9 +5,8 @@ import GridLayout from 'react-grid-layout'
 
 
 // Constants:
-import { OBJECT_STORE, OBJECT_STORE_CORE_IDS, OBJECT_STORE_EXTENSION_IDS } from '../constants/indexedDB/objectStores'
+import { EXTENSION_TYPE, OBJECT_STORE, OBJECT_STORE_CORE_IDS } from '../constants/indexedDB/objectStores'
 import { IExtension, IMusicState, IObjectStoreExtensionMusic, IObjectStoreExtensionTodoList, ITodoListState } from '../indexedDB/types'
-import { EXTENSION_TYPE } from '../constants/extensions'
 import COLORS from '../styles/colors'
 import { PLAYER_TYPE } from '../constants/extensions/Music'
 
@@ -54,12 +53,12 @@ export const populateIndexedDB = async (indexedDB: DB) => {
         _id: OBJECT_STORE_CORE_IDS.LAYOUT,
         value: [ { i: IDList[0], x: 0, y: 48, w: 35 + 1, h: 8 + 2 }, { i: IDList[1], x: 27, y: 0, w: 25 + 2, h: 35 + 1 }, { i: IDList[2], x: 0, y: 0, w: 25 + 2, h: 35 + 1 } ]
       }),
-      tx[ OBJECT_STORE.EXTENSIONS ].objectStore<{ _id: OBJECT_STORE_EXTENSION_IDS, value: IObjectStoreExtensionMusic }>(OBJECT_STORE.EXTENSIONS).add({
-        _id: OBJECT_STORE_EXTENSION_IDS.MUSIC,
+      tx[ OBJECT_STORE.EXTENSIONS ].objectStore<{ _id: EXTENSION_TYPE, value: IObjectStoreExtensionMusic }>(OBJECT_STORE.EXTENSIONS).add({
+        _id: EXTENSION_TYPE.MUSIC,
         value: { [ IDList[0] ]: DEFAULT_EXTENSION_STATE.MUSIC }
       }),
-      tx[ OBJECT_STORE.EXTENSIONS ].objectStore<{ _id: OBJECT_STORE_EXTENSION_IDS, value: IObjectStoreExtensionTodoList }>(OBJECT_STORE.EXTENSIONS).add({
-        _id: OBJECT_STORE_EXTENSION_IDS.TODO_LIST,
+      tx[ OBJECT_STORE.EXTENSIONS ].objectStore<{ _id: EXTENSION_TYPE, value: IObjectStoreExtensionTodoList }>(OBJECT_STORE.EXTENSIONS).add({
+        _id: EXTENSION_TYPE.TODO_LIST,
         value: { [ IDList[1] ]: DEFAULT_EXTENSION_STATE.TODO_LIST, [ IDList[2] ]: DEFAULT_EXTENSION_STATE.TODO_LIST }
       })
     ])

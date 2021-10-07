@@ -12,7 +12,7 @@ import {
   UPDATE_EXTENSIONS_OBJECT_STORE
 } from '../action-types'
 import THEMES from '../../styles/themes'
-import { OBJECT_STORE, OBJECT_STORE_CORE_IDS, OBJECT_STORE_EXTENSION_IDS } from '../../constants/indexedDB/objectStores'
+import { OBJECT_STORE, OBJECT_STORE_CORE_IDS, EXTENSION_TYPE } from '../../constants/indexedDB/objectStores'
 
 
 // Redux:
@@ -29,8 +29,8 @@ const initialState : IState = {
           [ OBJECT_STORE_CORE_IDS.LAYOUT ]: []
         },
         [ OBJECT_STORE.EXTENSIONS ]: {
-          [ OBJECT_STORE_EXTENSION_IDS.MUSIC ]: {},
-          [ OBJECT_STORE_EXTENSION_IDS.TODO_LIST ]: {}
+          [ EXTENSION_TYPE.MUSIC ]: {},
+          [ EXTENSION_TYPE.TODO_LIST ]: {}
         }
       }
     }

@@ -9,7 +9,8 @@ export enum OBJECT_STORE_CORE_IDS {
   LAYOUT = 'layout'
 }
 
-export enum OBJECT_STORE_EXTENSION_IDS {
+export enum EXTENSION_TYPE {
   MUSIC = 'music',
-  TODO_LIST = 'todo_list'
+  TODO_LIST = 'todo_list',
+  TIMER = 'timer'
 }

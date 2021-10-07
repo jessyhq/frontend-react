@@ -14,8 +14,7 @@ import { IExtension, IObjectStoreExtensionMusic, IObjectStoreExtensionTodoList }
 
 // Constants:
 import COLORS from '../../styles/colors'
-import { EXTENSION_TYPE } from '../../constants/extensions'
-import { OBJECT_STORE, OBJECT_STORE_CORE_IDS, OBJECT_STORE_EXTENSION_IDS } from '../../constants/indexedDB/objectStores'
+import { OBJECT_STORE, OBJECT_STORE_CORE_IDS, EXTENSION_TYPE } from '../../constants/indexedDB/objectStores'
 import { populateIndexedDB } from '../../indexedDB'
 
 
@@ -100,8 +99,8 @@ const App = () => {
       }, OBJECT_STORE.CORE))
       const extensionsTransaction = indexedDB.transaction(OBJECT_STORE.EXTENSIONS, 'readonly')
       dispatch(updateObjectStore({
-        music: (await extensionsTransaction.objectStore(OBJECT_STORE.EXTENSIONS).get(OBJECT_STORE_EXTENSION_IDS.MUSIC)).value as IObjectStoreExtensionMusic,
-        todo_list: (await extensionsTransaction.objectStore(OBJECT_STORE.EXTENSIONS).get(OBJECT_STORE_EXTENSION_IDS.TODO_LIST)).value as IObjectStoreExtensionTodoList
+        [ EXTENSION_TYPE.MUSIC ]: (await extensionsTransaction.objectStore(OBJECT_STORE.EXTENSIONS).get(EXTENSION_TYPE.MUSIC)).value as IObjectStoreExtensionMusic,
+        [ EXTENSION_TYPE.TODO_LIST ]: (await extensionsTransaction.objectStore(OBJECT_STORE.EXTENSIONS).get(EXTENSION_TYPE.TODO_LIST)).value as IObjectStoreExtensionTodoList
       }, OBJECT_STORE.EXTENSIONS))
     })()
   }, [ dispatch ])
