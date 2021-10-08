@@ -101,8 +101,9 @@ const ContextMenu = () => {
     setWrapperBounds(null)
   }, [ zIndex ])
 
-  const handleClick = useCallback(async (event: MouseEvent) => {
-    if (wrapperRef.current.contains(event.target)) return
+  const handleClick = useCallback(async (event: MouseEvent | FocusEvent) => {
+    if (event.target === window) closeMenu()
+    else if (wrapperRef.current.contains(event.target)) return
     closeMenu()
   }, [ closeMenu ])
 
@@ -131,7 +132,7 @@ const ContextMenu = () => {
   useEffect(() => {
     document.addEventListener('click', handleClick)
     document.addEventListener('contextmenu', handleContextMenu)
-    window.addEventListener('blur', () => handleClick)
+    window.addEventListener('blur', handleClick)
     return () => {
       document.removeEventListener('click', handleClick)
       document.removeEventListener('contextmenu', handleContextMenu)
