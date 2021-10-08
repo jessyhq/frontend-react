@@ -234,7 +234,7 @@ const ContextMenu = () => {
                 <MdFactCheck style={{ marginRight: '0.5rem', marginBottom: '-0.1rem', fontSize: '1rem', fill: 'url(#todolist-icon-gradient)' }} />
                 todolist
               </Option>
-              <Option style={{ borderRadius: '0 0 5px 5px' }} clickable={ true } onClick={ deleteExtension }>
+              <Option style={{ borderRadius: '0 0 5px 5px' }} clickable={ true }>
                 <svg width="0" height="0">
                   <linearGradient id="music-icon-gradient" x1="100%" y1="100%" x2="0%" y2="0%">
                     <stop stopColor="rgba(179,6,194,1)" offset="25%" />
