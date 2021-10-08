@@ -19,7 +19,7 @@ import { IoAddCircleOutline } from 'react-icons/io5'
 
 // Constants:
 import COLORS from '../../../styles/colors'
-import { OBJECT_STORE } from '../../../constants/indexedDB/objectStores'
+import { EXTENSION_TYPE, OBJECT_STORE } from '../../../constants/indexedDB/objectStores'
 
 
 // Redux:
@@ -86,7 +86,7 @@ const ContextMenu = () => {
   const [ isAlreadyActive, setIsAlreadyActive ] = useState(false)
   const [ isShowing, setIsShowing ] = useState(false)
   const [ zIndex, setZIndex ] = useState(-1)
-  const [ focusedExtensionID, setFocusedExtensionID ] = useState<string | null>(null)
+  const [ focusedExtension, setFocusedExtension ] = useState<{ _id?: string, type?: EXTENSION_TYPE }>({})
   const [ isFocusedOnExtension, setIsFocusedOnExtension ] = useState(false)
 
   // Functions:
@@ -122,11 +122,11 @@ const ContextMenu = () => {
 
   const deleteExtension = useCallback(() => {
     const [ currentExtensions, currentLayout ] = [ coreObjectStore.extensions, coreObjectStore.layout ]
-    currentExtensions.splice(currentExtensions.findIndex(extension => extension._id === focusedExtensionID), 1)
-    currentLayout.splice(currentLayout.findIndex(layout => layout.i === focusedExtensionID), 1)
+    currentExtensions.splice(currentExtensions.findIndex(extension => extension._id === focusedExtension._id), 1)
+    currentLayout.splice(currentLayout.findIndex(layout => layout.i === focusedExtension._id), 1)
     dispatch(updateObjectStore({ extensions: currentExtensions, layout: currentLayout }, OBJECT_STORE.CORE))
     closeMenu()
-  }, [ closeMenu, dispatch, focusedExtensionID, coreObjectStore ])
+  }, [ closeMenu, dispatch, focusedExtension, coreObjectStore ])
 
   // Effects:
   useEffect(() => {
@@ -141,15 +141,15 @@ const ContextMenu = () => {
   }, [ handleClick, handleContextMenu ])
 
   useEffect(() => {
-    let extensionID: string | null = null
-    for (let key in contextTarget) { if (contextTarget[ key ]) { extensionID = key; break } }
-    setFocusedExtensionID(extensionID)
+    const extension: { _id?: string, type?: EXTENSION_TYPE } = {}
+    for (let key in contextTarget) { if (contextTarget[ key ] !== undefined) { extension._id = key; extension.type = contextTarget[ key ]; break } }
+    setFocusedExtension(extension)
   }, [ contextTarget ])
 
   useDebounce(() => {
-    if (!!focusedExtensionID) setIsFocusedOnExtension(true)
+    if (!!focusedExtension._id) setIsFocusedOnExtension(true)
     else setIsFocusedOnExtension(false)
-  }, isAlreadyActive ? 200 : 0, [ focusedExtensionID ])
+  }, isAlreadyActive ? 200 : 0, [ focusedExtension._id ])
 
   // Return:
   return (

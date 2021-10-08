@@ -54,7 +54,7 @@ const Music = ({ _id }: { _id: string }) => {
 
   // Ref:
   const wrapperRef = useOuterContextMenu((e) => {
-    if (contextTarget[ _id ] === true) dispatch(updateContextTarget({ [_id ]: false }))
+    if (contextTarget[ _id ] === EXTENSION_TYPE.MUSIC) dispatch(updateContextTarget({ [_id ]: undefined }))
   })
 
   // State:
@@ -184,7 +184,7 @@ const Music = ({ _id }: { _id: string }) => {
   return (
     <Wrapper
       ref={ wrapperRef }
-      onContextMenu={() => { if (!contextTarget[ _id ]) dispatch(updateContextTarget({ [ _id ]: true })) }}
+      onContextMenu={() => { if (!contextTarget[ _id ]) dispatch(updateContextTarget({ [ _id ]: EXTENSION_TYPE.MUSIC })) }}
     >
       <InnerContainer className='draggableCancel'>
         <Screen>

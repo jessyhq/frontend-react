@@ -59,7 +59,7 @@ const TodoList = ({ _id }: { _id: string }) => {
 
   // Ref:
   const wrapperRef = useOuterContextMenu((e) => {
-    if (contextTarget[ _id ] === true) dispatch(updateContextTarget({ [_id ]: false }))
+    if (contextTarget[ _id ] === EXTENSION_TYPE.TODO_LIST) dispatch(updateContextTarget({ [_id ]: undefined }))
   })
 
   // State:
@@ -228,7 +228,7 @@ const TodoList = ({ _id }: { _id: string }) => {
   return (
     <Wrapper
       ref={ wrapperRef }
-      onContextMenu={() => { if (!contextTarget[ _id ]) dispatch(updateContextTarget({ [ _id ]: true })) }}
+      onContextMenu={() => { if (!contextTarget[ _id ]) dispatch(updateContextTarget({ [ _id ]: EXTENSION_TYPE.TODO_LIST })) }}
     >
       <InnerContainer className='draggableCancel'>
         <ScreenContainer isOn={ isOn }>
