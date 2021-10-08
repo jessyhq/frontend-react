@@ -12,5 +12,5 @@ export enum OBJECT_STORE_CORE_IDS {
 export enum EXTENSION_TYPE {
   MUSIC = 'music',
   TODO_LIST = 'todo_list',
-  TIMER = 'timer'
+  // TIMER = 'timer'
 }

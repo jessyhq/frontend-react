@@ -80,6 +80,7 @@ const ContextMenu = () => {
   // State:
   const contextTarget = useSelector((state: IState) => state.global.contextTarget)
   const coreObjectStore = useSelector((state: IState) => state.global.localStorageDb.objectStores.core)
+  const extensionsObjectStore = useSelector((state: IState) => state.global.localStorageDb.objectStores.extensions)
   const footerBounds = useSelector((state: IState) => state.footer.bounds)
   const [ wrapperBounds, setWrapperBounds ] = useState<DOMRect | null>(null)
   const [ anchorPoint, setAnchorPoint ] = useState({ X: 0, Y: 0 })
@@ -87,6 +88,7 @@ const ContextMenu = () => {
   const [ isShowing, setIsShowing ] = useState(false)
   const [ zIndex, setZIndex ] = useState(-1)
   const [ focusedExtension, setFocusedExtension ] = useState<{ _id?: string, type?: EXTENSION_TYPE }>({})
+  const [ extensionLastEdited, setExtensionLastEdited ] = useState(0)
   const [ isFocusedOnExtension, setIsFocusedOnExtension ] = useState(false)
 
   // Functions:
@@ -94,7 +96,7 @@ const ContextMenu = () => {
     setIsAlreadyActive(false)
     setIsShowing(false)
     if (zIndex === 6000) {
-      await new Promise(resolve => setTimeout(resolve, 250))
+      await new Promise(resolve => setTimeout(resolve, 200))
       setIsShowing(false)
       setZIndex(-1)
     }
@@ -143,8 +145,14 @@ const ContextMenu = () => {
   useEffect(() => {
     const extension: { _id?: string, type?: EXTENSION_TYPE } = {}
     for (let key in contextTarget) { if (contextTarget[ key ] !== undefined) { extension._id = key; extension.type = contextTarget[ key ]; break } }
-    setFocusedExtension(extension)
-  }, [ contextTarget ])
+    setFocusedExtension(extension);
+    (async () => {
+      if (extension.type && extension._id && isFocusedOnExtension) {
+        if (isAlreadyActive) await new Promise(resolve => setTimeout(resolve, 200))
+        setExtensionLastEdited(extensionsObjectStore[ extension.type ][ extension._id ].time.lastEdited)
+      }
+    })()
+  }, [ contextTarget, extensionsObjectStore, isAlreadyActive, isFocusedOnExtension ])
 
   useDebounce(() => {
     if (!!focusedExtension._id) setIsFocusedOnExtension(true)
@@ -179,6 +187,10 @@ const ContextMenu = () => {
             <AiOutlineDelete style={{ marginRight: '0.5rem', marginBottom: '-0.1rem', fontSize: '1rem' }} />
             Delete
           </Option>
+          <LastEdit>
+            <div style={{ marginBottom: '0.2rem' }}>Last edited by You</div>
+            <span>{ dateFormat(extensionLastEdited, 'dd/mm/yyyy') }</span>
+          </LastEdit>
         </>
         :
         <>
@@ -191,10 +203,6 @@ const ContextMenu = () => {
           </Option>
         </>
       }
-      <LastEdit>
-        <div style={{ marginBottom: '0.2rem' }}>Last edited by You</div>
-        <span>{ dateFormat(Date.now(), 'dd/mm/yyyy') }</span>
-      </LastEdit>
     </Wrapper>
   )
 }
