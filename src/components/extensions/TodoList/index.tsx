@@ -189,7 +189,7 @@ const TodoList = ({ _id }: { _id: string }) => {
   }, [ _id, dispatch, localTodoListState, tasks, tasksMetadata ])
 
   const deleteTask = useCallback((taskID: string) => {
-    const newTasks = tasks.filter(task => task._id !== _id), taskToBeDeleted = tasks[ tasks.findIndex(task => task._id === _id) ]
+    const newTasks = tasks.filter(task => task._id !== taskID), taskToBeDeleted = tasks[ tasks.findIndex(task => task._id === taskID) ]
     setTasks(newTasks)
     dispatch(updateObjectStore({
       [ EXTENSION_TYPE.TODO_LIST ]: {
