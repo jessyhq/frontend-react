@@ -181,14 +181,14 @@ const ContextMenu = () => {
         <>
           <Option style={{ borderRadius: '5px 5px 0 0' }} clickable={ false }>
             <MdContentCopy style={{ marginRight: '0.5rem', marginBottom: '-0.1rem', fontSize: '1rem' }} />
-            Clone
+            clone
           </Option>
           <Option clickable={ true } onClick={ deleteExtension }>
             <AiOutlineDelete style={{ marginRight: '0.5rem', marginBottom: '-0.1rem', fontSize: '1rem' }} />
-            Delete
+            delete
           </Option>
           <LastEdit>
-            <div style={{ marginBottom: '0.2rem' }}>Last edited by You</div>
+            <div style={{ marginBottom: '0.2rem' }}>last edited by you</div>
             <span>{ dateFormat(extensionLastEdited, 'dd/mm/yyyy') }</span>
           </LastEdit>
         </>
@@ -196,10 +196,10 @@ const ContextMenu = () => {
         <>
           <Option style={{ borderRadius: '5px 5px 0 0' }} clickable={ false }>
             <IoAddCircleOutline style={{ marginRight: '0.5rem', marginBottom: '-0.1rem', fontSize: '1rem' }} />
-            Add an extension
+            add an extension
           </Option>
           <Option clickable={ false }>
-            Show stats
+            show stats
           </Option>
         </>
       }
