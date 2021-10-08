@@ -9,12 +9,14 @@ import dateFormat from 'dateformat'
 
 // Typescript:
 import { IState } from '../../../redux/reducers/types'
+import { EXTENDED_MENU } from './types'
 
 
 // Imports:
-import { MdContentCopy } from 'react-icons/md'
+import { MdContentCopy, MdFactCheck } from 'react-icons/md'
 import { AiOutlineDelete } from 'react-icons/ai'
-import { IoAddCircleOutline } from 'react-icons/io5'
+import { IoAddCircleOutline, IoMusicalNotes } from 'react-icons/io5'
+import { RiArrowRightSFill } from 'react-icons/ri'
 
 
 // Constants:
@@ -27,18 +29,20 @@ import { updateObjectStore } from '../../../redux/actions'
 
 
 // Styles:
-export const Wrapper = styled.div<{ currentHeight: number, isShowing: boolean, invert: { X: boolean, Y: boolean } }>`
+const MenuTemplate = styled.div`
   position: absolute;
   width: 15rem;
-  /* height: 20rem; */
-  margin-top: ${ props => props.isShowing ? 0 : props.invert.Y ? -1 : 1 }rem;
   background-color: #FFFFFF;
   box-shadow: 0px 2px 5px -5px ${ Color(COLORS.BLACK).alpha(0.5).toString() };
   font-size: 0.9rem;
   border: 1px solid ${ Color(COLORS.WHITE).darken(0.1).toString() };
   border-radius: 5px;
-  transform: ${ props => 'translate(' + (props.invert.X ? '-15.25rem, ' : '0.25rem, ') + (props.invert.Y ? `-${ props.currentHeight }.25rem` : '0.25rem') + ')'  };
   transition: filter 0.2s ease, margin-top 0.2s ease;
+`
+
+export const Wrapper = styled(MenuTemplate)<{ currentHeight: number, isShowing: boolean, invert: { X: boolean, Y: boolean } }>`
+  margin-top: ${ props => props.isShowing ? 0 : props.invert.Y ? -1 : 1 }rem;
+  transform: ${ props => 'translate(' + (props.invert.X ? '-15.25rem, ' : '0.25rem, ') + (props.invert.Y ? `-${ props.currentHeight }.25rem` : '0.25rem') + ')'  };
 `
 
 export const Option = styled.div<{ clickable: boolean }>`
@@ -59,6 +63,11 @@ export const Option = styled.div<{ clickable: boolean }>`
   }
 `
 
+export const ExtendedMenu = styled(MenuTemplate)<{ isShowing: boolean }>`
+  margin-top: ${ props => props.isShowing ? 0 : 1 }rem;
+  margin-left: 14rem;
+`
+
 export const LastEdit = styled.div`
   width: 13rem;
   min-height: 1rem;
@@ -73,6 +82,7 @@ export const LastEdit = styled.div`
 const ContextMenu = () => {
   // Constants:
   const dispatch = useDispatch()
+  const __DEV__ = false
 
   // Ref:
   const wrapperRef = useRef<any>(null)
@@ -90,9 +100,11 @@ const ContextMenu = () => {
   const [ focusedExtension, setFocusedExtension ] = useState<{ _id?: string, type?: EXTENSION_TYPE }>({})
   const [ extensionLastEdited, setExtensionLastEdited ] = useState(0)
   const [ isFocusedOnExtension, setIsFocusedOnExtension ] = useState(false)
+  const [ activeExtendedMenu, setActiveExtendedMenu ] = useState<EXTENDED_MENU | undefined>(undefined)
 
   // Functions:
   const closeMenu = useCallback(async () => {
+    if (__DEV__) return
     setIsAlreadyActive(false)
     setIsShowing(false)
     if (zIndex === 6000) {
@@ -101,13 +113,14 @@ const ContextMenu = () => {
       setZIndex(-1)
     }
     setWrapperBounds(null)
-  }, [ zIndex ])
+  }, [ __DEV__, zIndex ])
 
   const handleClick = useCallback(async (event: MouseEvent | FocusEvent) => {
+    if (__DEV__) return
     if (event.target === window) closeMenu()
     else if (wrapperRef.current.contains(event.target)) return
     closeMenu()
-  }, [ closeMenu ])
+  }, [ __DEV__, closeMenu ])
 
   const handleContextMenu = useCallback(async (event: MouseEvent) => {
     event.preventDefault()
@@ -194,9 +207,44 @@ const ContextMenu = () => {
         </>
         :
         <>
-          <Option style={{ borderRadius: '5px 5px 0 0' }} clickable={ false }>
-            <IoAddCircleOutline style={{ marginRight: '0.5rem', marginBottom: '-0.1rem', fontSize: '1rem' }} />
-            add an extension
+          <Option
+            style={{ borderRadius: '5px 5px 0 0' }}
+            clickable={ true }
+            onMouseOver={ () => setActiveExtendedMenu(EXTENDED_MENU.ADD_AN_EXTENSION) }
+            onMouseOut={ () => setActiveExtendedMenu(undefined) }
+          >
+            <span style={{ width: '100%' }}>
+              <IoAddCircleOutline style={{ marginRight: '0.5rem', marginBottom: '-0.3rem', fontSize: '1rem' }} />
+              add an extension
+            </span>
+            <RiArrowRightSFill style={{ marginRight: '-0.5rem', marginBottom: '-0.2rem', fontSize: '1.5rem', color: Color(COLORS.WHITE).darken(0.5).hex() }} />
+            <ExtendedMenu
+              isShowing={ activeExtendedMenu === EXTENDED_MENU.ADD_AN_EXTENSION }
+              style={{
+                filter: activeExtendedMenu === EXTENDED_MENU.ADD_AN_EXTENSION ? 'opacity(1)' : 'opacity(0)'
+              }}
+            >
+              <Option style={{ borderRadius: '5px 5px 0 0' }} clickable={ true }>
+                <svg width="0" height="0">
+                  <linearGradient id="todolist-icon-gradient" x1="100%" y1="100%" x2="0%" y2="0%">
+                    <stop stopColor="rgba(194,6,29,1)" offset="25%" />
+                    <stop stopColor="rgba(210,52,193,1)" offset="75%" />
+                  </linearGradient>
+                </svg>
+                <MdFactCheck style={{ marginRight: '0.5rem', marginBottom: '-0.1rem', fontSize: '1rem', fill: 'url(#todolist-icon-gradient)' }} />
+                todolist
+              </Option>
+              <Option style={{ borderRadius: '0 0 5px 5px' }} clickable={ true } onClick={ deleteExtension }>
+                <svg width="0" height="0">
+                  <linearGradient id="music-icon-gradient" x1="100%" y1="100%" x2="0%" y2="0%">
+                    <stop stopColor="rgba(179,6,194,1)" offset="25%" />
+                    <stop stopColor="rgba(52,151,210,1)" offset="75%" />
+                  </linearGradient>
+                </svg>
+                <IoMusicalNotes style={{ marginRight: '0.5rem', marginBottom: '-0.1rem', fontSize: '1rem', fill: 'url(#music-icon-gradient)' }} />
+                music
+              </Option>
+            </ExtendedMenu>
           </Option>
           <Option clickable={ false }>
             show stats
