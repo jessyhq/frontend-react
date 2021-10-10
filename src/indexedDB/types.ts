@@ -1,5 +1,5 @@
 // Packages:
-import { DB } from 'idb'
+import { DBSchema, IDBPDatabase } from 'idb'
 import GridLayout from 'react-grid-layout'
 
 
@@ -15,9 +15,14 @@ export interface IExtension {
   type: typeof EXTENSION_TYPE.MUSIC | typeof EXTENSION_TYPE.TODO_LIST
 }
 
-export interface ICoreObjectStore {
-  [ OBJECT_STORE_CORE_IDS.EXTENSIONS ]: IExtension[]
-  [ OBJECT_STORE_CORE_IDS.LAYOUT ]: GridLayout.Layout[]
+export interface IIndexedDBCoreExtension {
+  _id: OBJECT_STORE_CORE_IDS.EXTENSIONS
+  value: IExtension[]
+}
+
+export interface IIndexedDBCoreLayout {
+  _id: OBJECT_STORE_CORE_IDS.LAYOUT
+  value: GridLayout.Layout[]
 }
 
 export interface IMusicState {
@@ -53,18 +58,48 @@ export interface IObjectStoreExtensionTodoList {
   [ _id: string ]: ITodoListState
 }
 
-export type TObjectStoreExtension = IObjectStoreExtensionMusic | IObjectStoreExtensionTodoList
+export interface IIndexedDBExtensionMusic {
+  _id: EXTENSION_TYPE.MUSIC
+  value: IObjectStoreExtensionMusic
+}
 
-export interface IExtensionsObjectStore {
+export interface IIndexedDBExtensionTodoList {
+  _id: EXTENSION_TYPE.TODO_LIST
+  value: IObjectStoreExtensionTodoList
+}
+
+export interface IIndexedDB extends DBSchema {
+  [ OBJECT_STORE.CORE ]: {
+    key: OBJECT_STORE_CORE_IDS.EXTENSIONS
+    value: IIndexedDBCoreExtension
+  } | {
+    key: OBJECT_STORE_CORE_IDS.LAYOUT
+    value: IIndexedDBCoreLayout
+  }
+  [ OBJECT_STORE.EXTENSIONS ]: {
+    key: EXTENSION_TYPE.MUSIC
+    value: IIndexedDBExtensionMusic
+  } | {
+    key: EXTENSION_TYPE.TODO_LIST
+    value: IIndexedDBExtensionTodoList
+  }
+}
+
+export interface IReduxCoreObjectStore {
+  [ OBJECT_STORE_CORE_IDS.EXTENSIONS ]: IExtension[]
+  [ OBJECT_STORE_CORE_IDS.LAYOUT ]: GridLayout.Layout[]
+}
+
+export interface IReduxExtensionsObjectStore {
   [ EXTENSION_TYPE.MUSIC ]: IObjectStoreExtensionMusic
   [ EXTENSION_TYPE.TODO_LIST ]: IObjectStoreExtensionTodoList
 }
 
-export interface ILocalStorageDb {
+export interface IReduxIndexedDB {
   isFirstTime: boolean
-  db: DB | null
+  db: IDBPDatabase<IIndexedDB> | null
   objectStores: {
-    [ OBJECT_STORE.CORE ]: ICoreObjectStore
-    [ OBJECT_STORE.EXTENSIONS ]: IExtensionsObjectStore
+    [ OBJECT_STORE.CORE ]: IReduxCoreObjectStore,
+    [ OBJECT_STORE.EXTENSIONS ]: IReduxExtensionsObjectStore
   }
 }
