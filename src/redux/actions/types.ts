@@ -1,28 +1,45 @@
 // Typescript:
-import { IReduxCoreObjectStore, IReduxExtensionsObjectStore, IReduxIndexedDB } from '../../indexedDB/types'
+import {
+  IReduxCoreObjectStore,
+  IReduxExtensionsObjectStore,
+  IReduxIndexedDB
+} from '../../indexedDB/types'
 import {
   UPDATE_GLOBAL,
+  UPDATE_APP,
   UPDATE_FOOTER,
   UPDATE_CONTEXT_TARGET,
   UPDATE_LOCAL_STORAGE_DB,
   UPDATE_CORE_OBJECT_STORE,
   UPDATE_EXTENSIONS_OBJECT_STORE
 } from '../action-types'
-import { IContextTarget, IStateFooter, IStateGlobal } from '../reducers/types'
+import {
+  IReduxStateGlobal,
+  IReduxStateApp,
+  IReduxStateFooter,
+  IContextTarget
+} from '../reducers/types'
 
 
 // Exports:
 export interface IUpdateGlobal {
-  (payload: Partial<IStateGlobal>): {
+  (payload: Partial<IReduxStateGlobal>): {
     type: typeof UPDATE_GLOBAL
-    payload: Partial<IStateGlobal>
+    payload: Partial<IReduxStateGlobal>
+  }
+}
+
+export interface IUpdateApp {
+  (payload: Partial<IReduxStateApp>): {
+    type: typeof UPDATE_APP
+    payload: Partial<IReduxStateApp>
   }
 }
 
 export interface IUpdateFooter {
-  (payload: Partial<IStateFooter>): {
+  (payload: Partial<IReduxStateFooter>): {
     type: typeof UPDATE_FOOTER
-    payload: Partial<IStateFooter>
+    payload: Partial<IReduxStateFooter>
   }
 }
 
@@ -52,6 +69,7 @@ export interface IDispatchExtensionsObjectStore {
 
 export type TActionType =
   typeof UPDATE_GLOBAL |
+  typeof UPDATE_APP |
   typeof UPDATE_FOOTER |
   typeof UPDATE_CONTEXT_TARGET |
   typeof UPDATE_LOCAL_STORAGE_DB |
@@ -59,8 +77,9 @@ export type TActionType =
   typeof UPDATE_EXTENSIONS_OBJECT_STORE
 
 export type IActionPayload =
-  Partial<IStateGlobal> &
-  Partial<IStateFooter> &
+  Partial<IReduxStateGlobal> &
+  Partial<IReduxStateApp> &
+  Partial<IReduxStateFooter> &
   Partial<IContextTarget> &
   Partial<IReduxIndexedDB> &
   Partial<IReduxCoreObjectStore> &

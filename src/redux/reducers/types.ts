@@ -9,12 +9,22 @@ import { EXTENSION_TYPE } from '../../constants/indexedDB/objectStores'
 export interface IContextTarget {
   [ _id: string ]: EXTENSION_TYPE | undefined
 }
-export interface IStateGlobal {
+export interface IReduxStateGlobal {
   theme: TTHEME
   contextTarget: IContextTarget
   localStorageDb: IReduxIndexedDB
 }
-export interface IStateFooter {
+
+export interface IExtensionsZIndexes { [ _id: string ]: number }
+
+export interface IReduxStateApp {
+  extensions: {
+    length: number
+    zIndexes: IExtensionsZIndexes
+  }
+}
+
+export interface IReduxStateFooter {
   bounds: null | DOMRectReadOnly
 }
 
@@ -24,6 +34,7 @@ export interface IAction {
 }
 
 export interface IState {
-  global: IStateGlobal
-  footer: IStateFooter
+  global: IReduxStateGlobal
+  app: IReduxStateApp
+  footer: IReduxStateFooter
 }

@@ -5,6 +5,7 @@ import { IAction, IState } from './types'
 // Constants:
 import {
   UPDATE_GLOBAL,
+  UPDATE_APP,
   UPDATE_FOOTER,
   UPDATE_CONTEXT_TARGET,
   UPDATE_LOCAL_STORAGE_DB,
@@ -35,6 +36,12 @@ const initialState : IState = {
       }
     }
   },
+  app: {
+    extensions: {
+      length: 0,
+      zIndexes: {}
+    }
+  },
   footer: {
     bounds: null
   }
@@ -49,6 +56,14 @@ const reducer = (state = initialState, action: IAction) => {
         ...state,
         global: {
           ...state.global,
+          ...action.payload
+        }
+      }
+    case UPDATE_APP:
+      return {
+        ...state,
+        app: {
+          ...state.app,
           ...action.payload
         }
       }

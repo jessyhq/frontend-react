@@ -8,6 +8,7 @@ import isEqual from 'lodash/isEqual'
 // Typescript:
 import {
   IUpdateGlobal,
+  IUpdateApp,
   IUpdateFooter,
   IUpdateContextTarget,
   IUpdateLocalStorageDb,
@@ -27,6 +28,7 @@ import { IState } from '../reducers/types'
 // Constants:
 import {
   UPDATE_GLOBAL,
+  UPDATE_APP,
   UPDATE_FOOTER,
   UPDATE_CONTEXT_TARGET,
   UPDATE_LOCAL_STORAGE_DB,
@@ -42,6 +44,7 @@ import {
 
 // Exports:
 export const updateGlobal: IUpdateGlobal = payload => ({ type: UPDATE_GLOBAL, payload })
+export const updateApp: IUpdateApp = payload => ({ type: UPDATE_APP, payload })
 export const updateFooter: IUpdateFooter = payload => ({ type: UPDATE_FOOTER, payload })
 export const updateContextTarget: IUpdateContextTarget = payload => ({ type: UPDATE_CONTEXT_TARGET, payload })
 export const updateLocalStorageDb: IUpdateLocalStorageDb = payload => ({ type: UPDATE_LOCAL_STORAGE_DB, payload })
