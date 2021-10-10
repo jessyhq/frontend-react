@@ -3,6 +3,7 @@ import React, { useRef, useState, useCallback, useEffect } from 'react'
 import styled from 'styled-components'
 import Color from 'color'
 import { useDispatch, useSelector } from 'react-redux'
+import { nanoid } from 'nanoid'
 import { useDebounce } from 'react-use'
 import dateFormat from 'dateformat'
 
@@ -21,11 +22,12 @@ import { RiArrowRightSFill } from 'react-icons/ri'
 
 // Constants:
 import COLORS from '../../../styles/colors'
-import { EXTENSION_TYPE, OBJECT_STORE } from '../../../constants/indexedDB/objectStores'
+import { EXTENSION_TYPE, OBJECT_STORE, OBJECT_STORE_CORE_IDS } from '../../../constants/indexedDB/objectStores'
+import { DEFAULT_EXTENSION_SIZE, DEFAULT_EXTENSION_STATE } from '../../../indexedDB'
 
 
 // Redux:
-import { updateObjectStore } from '../../../redux/actions'
+import { updateObjectStore, updateApp } from '../../../redux/actions'
 
 
 // Styles:
@@ -91,6 +93,7 @@ const ContextMenu = () => {
   const contextTarget = useSelector((state: IState) => state.global.contextTarget)
   const coreObjectStore = useSelector((state: IState) => state.global.localStorageDb.objectStores.core)
   const extensionsObjectStore = useSelector((state: IState) => state.global.localStorageDb.objectStores.extensions)
+  const appState = useSelector((state: IState) => state.app)
   const footerBounds = useSelector((state: IState) => state.footer.bounds)
   const [ wrapperBounds, setWrapperBounds ] = useState<DOMRect | null>(null)
   const [ anchorPoint, setAnchorPoint ] = useState({ X: 0, Y: 0 })
@@ -136,12 +139,57 @@ const ContextMenu = () => {
   }, [ isShowing, zIndex ])
 
   const deleteExtension = useCallback(() => {
-    const [ currentExtensions, currentLayout ] = [ coreObjectStore.extensions, coreObjectStore.layout ]
+    if (focusedExtension._id === undefined) return
+    const [ currentExtensions, currentLayout, zIndexes ] = [ coreObjectStore.extensions, coreObjectStore.layout, appState.extensions.zIndexes ]
     currentExtensions.splice(currentExtensions.findIndex(extension => extension._id === focusedExtension._id), 1)
     currentLayout.splice(currentLayout.findIndex(layout => layout.i === focusedExtension._id), 1)
-    dispatch(updateObjectStore({ extensions: currentExtensions, layout: currentLayout }, OBJECT_STORE.CORE))
+    dispatch(updateObjectStore({
+      [ OBJECT_STORE_CORE_IDS.EXTENSIONS ]: currentExtensions,
+      [ OBJECT_STORE_CORE_IDS.LAYOUT ]: currentLayout
+    }, OBJECT_STORE.CORE))
+    const cursor = zIndexes[ focusedExtension._id ]
+    delete zIndexes[ focusedExtension._id ]
+    for (let [ _id, currentIndex ] of Object.entries(zIndexes)) {
+      if (currentIndex < cursor) zIndexes[ _id ] = currentIndex
+      else if (currentIndex > cursor) zIndexes[ _id ] = currentIndex - 1
+    }
+    dispatch(updateApp({
+      extensions: {
+        ...appState.extensions,
+        length: appState.extensions.length - 1,
+        zIndexes: {
+          ...appState.extensions.zIndexes,
+          ...zIndexes
+        }
+      }
+    }))
     closeMenu()
-  }, [ closeMenu, dispatch, focusedExtension, coreObjectStore ])
+  }, [ focusedExtension._id, coreObjectStore.extensions, coreObjectStore.layout, appState.extensions, dispatch, closeMenu ])
+
+  const addExtension = useCallback((extensionType: EXTENSION_TYPE) => {
+    const [ currentExtensions, currentLayout, newExtensionID, zIndexes ] = [ coreObjectStore.extensions, coreObjectStore.layout, nanoid(), appState.extensions.zIndexes ]
+    currentExtensions.push({ _id: newExtensionID, type: extensionType })
+    currentLayout.push({ i: newExtensionID, x: Math.floor(anchorPoint.X / 16), y: Math.floor(anchorPoint.Y / 16), ...DEFAULT_EXTENSION_SIZE[ extensionType ] })
+    dispatch(updateObjectStore({
+      [ OBJECT_STORE_CORE_IDS.EXTENSIONS ]: currentExtensions,
+      [ OBJECT_STORE_CORE_IDS.LAYOUT ]: currentLayout
+    }, OBJECT_STORE.CORE))
+    dispatch(updateObjectStore({
+      [ extensionType ]: { [ newExtensionID ]: DEFAULT_EXTENSION_STATE()[ extensionType ] }
+    }, OBJECT_STORE.EXTENSIONS))
+    zIndexes[ newExtensionID ] = appState.extensions.length
+    dispatch(updateApp({
+      extensions: {
+        ...appState.extensions,
+        length: appState.extensions.length + 1,
+        zIndexes: {
+          ...appState.extensions.zIndexes,
+          ...zIndexes
+        }
+      }
+    }))
+    closeMenu()
+  }, [ anchorPoint.X, anchorPoint.Y, appState.extensions, closeMenu, coreObjectStore.extensions, coreObjectStore.layout, dispatch ])
 
   // Effects:
   useEffect(() => {
@@ -224,7 +272,7 @@ const ContextMenu = () => {
                 filter: activeExtendedMenu === EXTENDED_MENU.ADD_AN_EXTENSION ? 'opacity(1)' : 'opacity(0)'
               }}
             >
-              <Option style={{ borderRadius: '5px 5px 0 0' }} clickable={ true }>
+              <Option style={{ borderRadius: '5px 5px 0 0' }} clickable={ true } onClick={ () => addExtension(EXTENSION_TYPE.TODO_LIST) }>
                 <svg width="0" height="0">
                   <linearGradient id="todolist-icon-gradient" x1="100%" y1="100%" x2="0%" y2="0%">
                     <stop stopColor="rgba(194,6,29,1)" offset="25%" />
@@ -234,7 +282,7 @@ const ContextMenu = () => {
                 <MdFactCheck style={{ marginRight: '0.5rem', marginBottom: '-0.1rem', fontSize: '1rem', fill: 'url(#todolist-icon-gradient)' }} />
                 todolist
               </Option>
-              <Option style={{ borderRadius: '0 0 5px 5px' }} clickable={ true }>
+              <Option style={{ borderRadius: '0 0 5px 5px' }} clickable={ true } onClick={ () => addExtension(EXTENSION_TYPE.MUSIC) }>
                 <svg width="0" height="0">
                   <linearGradient id="music-icon-gradient" x1="100%" y1="100%" x2="0%" y2="0%">
                     <stop stopColor="rgba(179,6,194,1)" offset="25%" />
