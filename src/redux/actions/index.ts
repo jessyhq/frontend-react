@@ -78,3 +78,24 @@ export const updateObjectStore = (
     }
   }
 }
+export const deleteExtensionFromExtensionsObjectStore = (
+  payload: { _id: string, type: EXTENSION_TYPE }[]
+) => async (
+  dispatch: Dispatch<IDispatchExtensionsObjectStore>,
+  getState: () => IState
+) => {
+  const db = getState().global.localStorageDb.db
+  if (db) {
+    const extensionsTransaction = db.transaction(OBJECT_STORE.EXTENSIONS, 'readonly')
+    const extensions = {
+      [ EXTENSION_TYPE.MUSIC ]: ((await extensionsTransaction.store.get(EXTENSION_TYPE.MUSIC))?.value ?? {}) as IObjectStoreExtensionMusic,
+      [ EXTENSION_TYPE.TODO_LIST ]: ((await extensionsTransaction.store.get(EXTENSION_TYPE.TODO_LIST))?.value ?? {}) as IObjectStoreExtensionTodoList
+    }
+    if (extensions === undefined) return
+    const extensionTypes = new Set()
+    payload.forEach(extension => { extensionTypes.add(extension.type); delete extensions[ extension.type ][ extension._id ] })
+    if (extensionTypes.has(EXTENSION_TYPE.MUSIC)) db.transaction(OBJECT_STORE.EXTENSIONS, 'readwrite').store.put({ _id: EXTENSION_TYPE.MUSIC, value: extensions[ EXTENSION_TYPE.MUSIC ] })
+    if (extensionTypes.has(EXTENSION_TYPE.TODO_LIST)) db.transaction(OBJECT_STORE.EXTENSIONS, 'readwrite').store.put({ _id: EXTENSION_TYPE.TODO_LIST, value: extensions[ EXTENSION_TYPE.TODO_LIST ] })
+    dispatch({ type: UPDATE_EXTENSIONS_OBJECT_STORE, payload: { [ EXTENSION_TYPE.MUSIC ]: extensions[ EXTENSION_TYPE.MUSIC ], [ EXTENSION_TYPE.TODO_LIST ]: extensions[ EXTENSION_TYPE.TODO_LIST ] } })
+  }
+}

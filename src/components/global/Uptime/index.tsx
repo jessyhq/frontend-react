@@ -33,6 +33,7 @@ const Uptime = () => {
     let finalExtensionsObjectStore = {}
     extensions.forEach(extension => {
       const localExtensionState = objectStores.extensions[ extension.type ][ extension._id ]
+      if (localExtensionState === undefined) return
       const newExtensionState = {
         [ extension.type ]: {
           [ extension._id ]: {

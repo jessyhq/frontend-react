@@ -27,7 +27,7 @@ import { DEFAULT_EXTENSION_SIZE, DEFAULT_EXTENSION_STATE } from '../../../indexe
 
 
 // Redux:
-import { updateObjectStore, updateApp } from '../../../redux/actions'
+import { updateObjectStore, updateApp, deleteExtensionFromExtensionsObjectStore } from '../../../redux/actions'
 
 
 // Styles:
@@ -139,16 +139,26 @@ const ContextMenu = () => {
   }, [ isShowing, zIndex ])
 
   const deleteExtension = useCallback(() => {
-    if (focusedExtension._id === undefined) return
-    const [ currentExtensions, currentLayout, zIndexes ] = [ coreObjectStore.extensions, coreObjectStore.layout, appState.extensions.zIndexes ]
-    currentExtensions.splice(currentExtensions.findIndex(extension => extension._id === focusedExtension._id), 1)
-    currentLayout.splice(currentLayout.findIndex(layout => layout.i === focusedExtension._id), 1)
+    if (focusedExtension._id === undefined || focusedExtension.type === undefined) return
+    const currentFocusedExtension = { _id: focusedExtension._id, type: focusedExtension.type }
+    const [
+      currentExtensions,
+      currentLayout,
+      zIndexes
+    ] = [
+      coreObjectStore.extensions,
+      coreObjectStore.layout,
+      appState.extensions.zIndexes
+    ]
+    currentExtensions.splice(currentExtensions.findIndex(extension => extension._id === currentFocusedExtension._id), 1)
+    currentLayout.splice(currentLayout.findIndex(layout => layout.i === currentFocusedExtension._id), 1)
     dispatch(updateObjectStore({
       [ OBJECT_STORE_CORE_IDS.EXTENSIONS ]: currentExtensions,
       [ OBJECT_STORE_CORE_IDS.LAYOUT ]: currentLayout
     }, OBJECT_STORE.CORE))
-    const cursor = zIndexes[ focusedExtension._id ]
-    delete zIndexes[ focusedExtension._id ]
+    dispatch(deleteExtensionFromExtensionsObjectStore([ currentFocusedExtension ]))
+    const cursor = zIndexes[ currentFocusedExtension._id ]
+    delete zIndexes[ currentFocusedExtension._id ]
     for (let [ _id, currentIndex ] of Object.entries(zIndexes)) {
       if (currentIndex < cursor) zIndexes[ _id ] = currentIndex
       else if (currentIndex > cursor) zIndexes[ _id ] = currentIndex - 1
@@ -164,7 +174,7 @@ const ContextMenu = () => {
       }
     }))
     closeMenu()
-  }, [ focusedExtension._id, coreObjectStore.extensions, coreObjectStore.layout, appState.extensions, dispatch, closeMenu ])
+  }, [ focusedExtension, coreObjectStore.extensions, coreObjectStore.layout, appState.extensions, dispatch, closeMenu ])
 
   const addExtension = useCallback((extensionType: EXTENSION_TYPE) => {
     const [ currentExtensions, currentLayout, newExtensionID, zIndexes ] = [ coreObjectStore.extensions, coreObjectStore.layout, nanoid(), appState.extensions.zIndexes ]
