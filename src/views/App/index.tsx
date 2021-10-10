@@ -1,15 +1,18 @@
 // Packages:
-import React, { useEffect, useCallback } from 'react'
+import React, { useEffect, useCallback, useState } from 'react'
 import styled from 'styled-components'
 import Color from 'color'
 import { useDispatch, useSelector } from 'react-redux'
-import { openDb } from 'idb'
+import { openDB } from 'idb'
 import isArrayEqual from '../../util/isArrayEqual'
+// import isEqual from 'lodash/isEqual'
 import GridLayout, { WidthProvider } from 'react-grid-layout'
 
 
 // Typescript:
-import { IExtension, IObjectStoreExtensionMusic, IObjectStoreExtensionTodoList } from '../../indexedDB/types'
+import { IExtensionsZIndex } from './types'
+import { IState } from '../../redux/reducers/types'
+import { IExtension, IIndexedDB, IObjectStoreExtensionMusic, IObjectStoreExtensionTodoList } from '../../indexedDB/types'
 
 
 // Constants:
@@ -25,8 +28,6 @@ import TodoList from '../../components/extensions/TodoList'
 
 // Redux:
 import { updateLocalStorageDb, updateObjectStore } from '../../redux/actions'
-import { IState } from '../../redux/reducers/types'
-
 
 
 // Styles:
@@ -60,6 +61,8 @@ const App = () => {
 
   // State:
   const localStorageDb = useSelector((state: IState) => state.global.localStorageDb)
+  const [ extensionsZIndex, setExtensionsZIndex ] = useState<IExtensionsZIndex>({})
+  const [ focusedItemID, setFocusedItemID ] = useState<string | undefined>(undefined)
 
   // Functions:
   const renderSwitch = useCallback((extension: IExtension) => {
@@ -84,24 +87,32 @@ const App = () => {
   // Effects:
   useEffect(() => {
     (async () => {
-      let isFirstTime = false
-      const indexedDB = await openDb('jessyLocalStorageDb', 1, db => {
-        isFirstTime = true
-        db.createObjectStore(OBJECT_STORE.CORE, { keyPath: '_id', autoIncrement: false })
-        db.createObjectStore(OBJECT_STORE.EXTENSIONS, { keyPath: '_id', autoIncrement: false })
-      })
-      if (isFirstTime) await populateIndexedDB(indexedDB)
-      const coreTransaction = indexedDB.transaction(OBJECT_STORE.CORE, 'readonly')
-      dispatch(updateLocalStorageDb({ db: indexedDB, isFirstTime }))
-      dispatch(updateObjectStore({
-        extensions: (await coreTransaction.objectStore(OBJECT_STORE.CORE).get(OBJECT_STORE_CORE_IDS.EXTENSIONS)).value as IExtension[],
-        layout: (await coreTransaction.objectStore(OBJECT_STORE.CORE).get(OBJECT_STORE_CORE_IDS.LAYOUT)).value as GridLayout.Layout[]
-      }, OBJECT_STORE.CORE))
-      const extensionsTransaction = indexedDB.transaction(OBJECT_STORE.EXTENSIONS, 'readonly')
-      dispatch(updateObjectStore({
-        [ EXTENSION_TYPE.MUSIC ]: (await extensionsTransaction.objectStore(OBJECT_STORE.EXTENSIONS).get(EXTENSION_TYPE.MUSIC)).value as IObjectStoreExtensionMusic,
-        [ EXTENSION_TYPE.TODO_LIST ]: (await extensionsTransaction.objectStore(OBJECT_STORE.EXTENSIONS).get(EXTENSION_TYPE.TODO_LIST)).value as IObjectStoreExtensionTodoList
-      }, OBJECT_STORE.EXTENSIONS))
+      try {
+        let isFirstTime = false
+        const indexedDB = await openDB<IIndexedDB>('jessyLocalStorageDb', 1, {
+          upgrade: (db) => {
+            isFirstTime = true
+            db.createObjectStore(OBJECT_STORE.CORE, { keyPath: '_id', autoIncrement: false })
+            db.createObjectStore(OBJECT_STORE.EXTENSIONS, { keyPath: '_id', autoIncrement: false })
+          }
+        })
+        if (isFirstTime) await populateIndexedDB(indexedDB)
+        const extensions = ((await indexedDB.transaction(OBJECT_STORE.CORE, 'readonly').store.get(OBJECT_STORE_CORE_IDS.EXTENSIONS))?.value ?? []) as IExtension[]
+        const layout = ((await indexedDB.transaction(OBJECT_STORE.CORE, 'readonly').store.get(OBJECT_STORE_CORE_IDS.LAYOUT))?.value ?? []) as GridLayout.Layout[]
+        setExtensionsZIndex(layout.reduce((accumulator, layoutItem, index) => ({ ...accumulator, [ layoutItem.i ]: index }), {}))
+        dispatch(updateLocalStorageDb({ db: indexedDB, isFirstTime }))
+        dispatch(updateObjectStore({
+          [ OBJECT_STORE_CORE_IDS.EXTENSIONS ]: extensions,
+          [ OBJECT_STORE_CORE_IDS.LAYOUT ]: layout
+        }, OBJECT_STORE.CORE))
+        const extensionsTransaction = indexedDB.transaction(OBJECT_STORE.EXTENSIONS, 'readonly')
+        dispatch(updateObjectStore({
+          [ EXTENSION_TYPE.MUSIC ]: ((await extensionsTransaction.store.get(EXTENSION_TYPE.MUSIC))?.value ?? {}) as IObjectStoreExtensionMusic,
+          [ EXTENSION_TYPE.TODO_LIST ]: ((await extensionsTransaction.store.get(EXTENSION_TYPE.TODO_LIST))?.value ?? {}) as IObjectStoreExtensionTodoList
+        }, OBJECT_STORE.EXTENSIONS))
+      } catch(e) {
+        console.error(e)
+      }
     })()
   }, [ dispatch ])
 
@@ -119,6 +130,8 @@ const App = () => {
             margin={[ 0, 0 ]}
             isResizable
             isBounded
+            // @ts-ignore TODO: remove ts-ignore when PR https://github.com/DefinitelyTyped/DefinitelyTyped/pull/56400 is merged
+            allowOverlap
             preventCollision
             compactType={ null }
             layout={ localStorageDb.objectStores.core.layout }
