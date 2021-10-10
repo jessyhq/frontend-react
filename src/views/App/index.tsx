@@ -65,6 +65,30 @@ const App = () => {
   const [ focusedItemID, setFocusedItemID ] = useState<string | undefined>(undefined)
 
   // Functions:
+  const rearrangeLayout = useCallback(() => {
+    if (focusedItemID === undefined) return
+    const cursor = extensionsZIndex[ focusedItemID ]
+    const newExtensionsZIndex: IExtensionsZIndex = {}
+    const extensionsZIndexEntries = Object.entries(extensionsZIndex)
+    for (let [ _id, currentIndex ] of extensionsZIndexEntries) {
+      if (currentIndex === cursor) newExtensionsZIndex[ _id ] = extensionsZIndexEntries.length - 1
+      else if (currentIndex < cursor) newExtensionsZIndex[ _id ] = currentIndex
+      else if (currentIndex > cursor) newExtensionsZIndex[ _id ] = currentIndex - 1
+    }
+    setExtensionsZIndex(newExtensionsZIndex)
+  }, [ extensionsZIndex, focusedItemID ])
+
+  const updateRearrangeLayout = useCallback((newLayout: GridLayout.Layout[]) => {
+    try {
+      newLayout
+        .sort(layoutItem => extensionsZIndex[ layoutItem.i ] - newLayout.indexOf(layoutItem))
+        .forEach(layoutItem => ({ h: layoutItem.h, i: layoutItem.i, w: layoutItem.w, x: layoutItem.x, y: layoutItem.y }))
+      if (!isArrayEqual(newLayout, localStorageDb.objectStores.core.layout)) dispatch(updateObjectStore({ [ OBJECT_STORE_CORE_IDS.LAYOUT ]: newLayout }, OBJECT_STORE.CORE))
+    } catch(e) {
+      console.error(e)
+    }
+  }, [dispatch, extensionsZIndex, localStorageDb.objectStores.core.layout])
+
   const renderSwitch = useCallback((extension: IExtension) => {
     switch(extension.type) {
       case EXTENSION_TYPE.MUSIC:
@@ -75,14 +99,6 @@ const App = () => {
         return <></>
     }
   }, [])
-
-  const updateLayout = useCallback(async (newLayout: GridLayout.Layout[]) => {
-    try {
-      if (!isArrayEqual(newLayout, localStorageDb.objectStores.core.layout)) dispatch(updateObjectStore({ layout: newLayout }, OBJECT_STORE.CORE))
-    } catch(e) {
-      console.error(e)
-    }
-  }, [ dispatch, localStorageDb.objectStores.core.layout ])
 
   // Effects:
   useEffect(() => {
@@ -135,10 +151,22 @@ const App = () => {
             preventCollision
             compactType={ null }
             layout={ localStorageDb.objectStores.core.layout }
-            onLayoutChange={ layout => updateLayout(layout) }
+            // NOTE: see https://github.com/react-grid-layout/react-grid-layout/issues/1587
+            // onLayoutChange={ layout => updateLayout(layout) }
+            onDragStart={ rearrangeLayout }
+            onDragStop={ updateRearrangeLayout }
             draggableCancel='.draggableCancel'
           >
-            { localStorageDb.objectStores.core.extensions.map(extension => <span key={ extension._id } >{ renderSwitch(extension) }</span>) }
+            {
+              localStorageDb.objectStores.core.extensions.map((extension) =>
+                <span
+                  key={ extension._id }
+                  id={ extension._id }
+                  style={{ zIndex: extensionsZIndex[ extension._id ] }}
+                  onMouseOver={ () => { if (focusedItemID === undefined || (focusedItemID !== undefined && focusedItemID !== extension._id)) setFocusedItemID(extension._id) } }
+                >{ renderSwitch(extension) }</span>
+              )
+            }
           </GridLayoutWithWidth>
         </Wrapper>
         :
