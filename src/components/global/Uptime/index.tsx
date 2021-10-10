@@ -7,7 +7,6 @@ import { useInterval } from 'react-use'
 
 // Typescript:
 import { IState } from '../../../redux/reducers/types'
-import { TObjectStoreExtension } from '../../../indexedDB/types'
 
 
 // Constants:
@@ -43,7 +42,7 @@ const Uptime = () => {
               uptime: localExtensionState.time.uptime + TIME.MINUTE
             }
           }
-        } as TObjectStoreExtension
+        }
       }
       finalExtensionsObjectStore = defaultsDeep(finalExtensionsObjectStore, newExtensionState)
     })
