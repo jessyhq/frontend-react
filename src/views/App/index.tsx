@@ -10,8 +10,7 @@ import GridLayout, { WidthProvider } from 'react-grid-layout'
 
 
 // Typescript:
-import { IExtensionsZIndex } from './types'
-import { IState } from '../../redux/reducers/types'
+import { IExtensionsZIndexes, IState } from '../../redux/reducers/types'
 import { IExtension, IIndexedDB, IObjectStoreExtensionMusic, IObjectStoreExtensionTodoList } from '../../indexedDB/types'
 
 
@@ -27,7 +26,7 @@ import TodoList from '../../components/extensions/TodoList'
 
 
 // Redux:
-import { updateLocalStorageDb, updateObjectStore } from '../../redux/actions'
+import { updateApp, updateLocalStorageDb, updateObjectStore } from '../../redux/actions'
 
 
 // Styles:
@@ -61,33 +60,40 @@ const App = () => {
 
   // State:
   const localStorageDb = useSelector((state: IState) => state.global.localStorageDb)
-  const [ extensionsZIndex, setExtensionsZIndex ] = useState<IExtensionsZIndex>({})
-  const [ focusedItemID, setFocusedItemID ] = useState<string | undefined>(undefined)
+  const appState = useSelector((state: IState) => state.app)
+  const [ focusedExtensionID, setFocusedExtensionID ] = useState<string | undefined>(undefined)
 
   // Functions:
   const rearrangeLayout = useCallback(() => {
-    if (focusedItemID === undefined) return
-    const cursor = extensionsZIndex[ focusedItemID ]
-    const newExtensionsZIndex: IExtensionsZIndex = {}
-    const extensionsZIndexEntries = Object.entries(extensionsZIndex)
-    for (let [ _id, currentIndex ] of extensionsZIndexEntries) {
-      if (currentIndex === cursor) newExtensionsZIndex[ _id ] = extensionsZIndexEntries.length - 1
-      else if (currentIndex < cursor) newExtensionsZIndex[ _id ] = currentIndex
-      else if (currentIndex > cursor) newExtensionsZIndex[ _id ] = currentIndex - 1
+    if (focusedExtensionID === undefined) return
+    const cursor = appState.extensions.zIndexes[ focusedExtensionID ]
+    const newExtensionsZIndexes: IExtensionsZIndexes = {}
+    for (let [ _id, currentIndex ] of Object.entries(appState.extensions.zIndexes)) {
+      if (currentIndex === cursor) newExtensionsZIndexes[ _id ] = appState.extensions.length - 1
+      else if (currentIndex < cursor) newExtensionsZIndexes[ _id ] = currentIndex
+      else if (currentIndex > cursor) newExtensionsZIndexes[ _id ] = currentIndex - 1
     }
-    setExtensionsZIndex(newExtensionsZIndex)
-  }, [ extensionsZIndex, focusedItemID ])
+    dispatch(updateApp({
+      extensions: {
+        ...appState.extensions,
+        zIndexes: {
+          ...appState.extensions.zIndexes,
+          ...newExtensionsZIndexes
+        }
+      }
+    }))
+  }, [ appState.extensions, dispatch, focusedExtensionID ])
 
   const updateRearrangeLayout = useCallback((newLayout: GridLayout.Layout[]) => {
     try {
       newLayout
-        .sort(layoutItem => extensionsZIndex[ layoutItem.i ] - newLayout.indexOf(layoutItem))
-        .forEach(layoutItem => ({ h: layoutItem.h, i: layoutItem.i, w: layoutItem.w, x: layoutItem.x, y: layoutItem.y }))
+        .sort(layoutItem => appState.extensions.zIndexes[ layoutItem.i ] - newLayout.indexOf(layoutItem))
+        .forEach((layoutItem, index, newLayout) => newLayout[ index ] = { h: layoutItem.h, i: layoutItem.i, w: layoutItem.w, x: layoutItem.x, y: layoutItem.y })
       if (!isArrayEqual(newLayout, localStorageDb.objectStores.core.layout)) dispatch(updateObjectStore({ [ OBJECT_STORE_CORE_IDS.LAYOUT ]: newLayout }, OBJECT_STORE.CORE))
     } catch(e) {
       console.error(e)
     }
-  }, [dispatch, extensionsZIndex, localStorageDb.objectStores.core.layout])
+  }, [ dispatch, appState.extensions.zIndexes, localStorageDb.objectStores.core.layout ])
 
   const renderSwitch = useCallback((extension: IExtension) => {
     switch(extension.type) {
@@ -115,7 +121,12 @@ const App = () => {
         if (isFirstTime) await populateIndexedDB(indexedDB)
         const extensions = ((await indexedDB.transaction(OBJECT_STORE.CORE, 'readonly').store.get(OBJECT_STORE_CORE_IDS.EXTENSIONS))?.value ?? []) as IExtension[]
         const layout = ((await indexedDB.transaction(OBJECT_STORE.CORE, 'readonly').store.get(OBJECT_STORE_CORE_IDS.LAYOUT))?.value ?? []) as GridLayout.Layout[]
-        setExtensionsZIndex(layout.reduce((accumulator, layoutItem, index) => ({ ...accumulator, [ layoutItem.i ]: index }), {}))
+        dispatch(updateApp({
+          extensions: {
+            length: layout.length,
+            zIndexes: layout.reduce((accumulator, layoutItem, index) => ({ ...accumulator, [ layoutItem.i ]: index }), {})
+          }
+        }))
         dispatch(updateLocalStorageDb({ db: indexedDB, isFirstTime }))
         dispatch(updateObjectStore({
           [ OBJECT_STORE_CORE_IDS.EXTENSIONS ]: extensions,
@@ -150,7 +161,7 @@ const App = () => {
             allowOverlap
             preventCollision
             compactType={ null }
-            layout={ localStorageDb.objectStores.core.layout }
+            // layout={ localStorageDb.objectStores.core.layout }
             // NOTE: see https://github.com/react-grid-layout/react-grid-layout/issues/1587
             // onLayoutChange={ layout => updateLayout(layout) }
             onDragStart={ rearrangeLayout }
@@ -162,8 +173,13 @@ const App = () => {
                 <span
                   key={ extension._id }
                   id={ extension._id }
-                  style={{ zIndex: extensionsZIndex[ extension._id ] }}
-                  onMouseOver={ () => { if (focusedItemID === undefined || (focusedItemID !== undefined && focusedItemID !== extension._id)) setFocusedItemID(extension._id) } }
+                  data-grid={ localStorageDb.objectStores.core.layout.find(layoutItem => layoutItem.i === extension._id) } // NOTE: bad performance, fix later.
+                  style={{ zIndex: appState.extensions.zIndexes[ extension._id ] }}
+                  onMouseOver={
+                    () => {
+                      if (focusedExtensionID === undefined || (focusedExtensionID !== undefined && focusedExtensionID !== extension._id)) setFocusedExtensionID(extension._id)
+                    }
+                  }
                 >{ renderSwitch(extension) }</span>
               )
             }
