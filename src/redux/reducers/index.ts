@@ -76,14 +76,16 @@ const reducer = (state = initialState, action: IAction) => {
         }
       }
     case UPDATE_CONTEXT_TARGET:
+      const newContextTarget = {
+        ...state.global.contextTarget,
+        ...action.payload
+      }
+      Object.keys(newContextTarget).forEach(_id => newContextTarget[ _id ] === undefined && delete newContextTarget[ _id ])
       return {
         ...state,
         global: {
           ...state.global,
-          contextTarget: {
-            ...state.global.contextTarget,
-            ...action.payload
-          }
+          contextTarget: newContextTarget
         }
       }
     case UPDATE_LOCAL_STORAGE_DB:

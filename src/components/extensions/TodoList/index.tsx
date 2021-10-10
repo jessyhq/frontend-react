@@ -218,7 +218,8 @@ const TodoList = ({ _id }: { _id: string }) => {
       })
       setHasLocalStateLoaded(true)
     }
-  }, [ _id, hasLocalStateLoaded, localTodoListState ])
+    return () => { if (contextTarget[ _id ] !== undefined) dispatch(updateContextTarget({ [ _id ]: undefined })) }
+  }, [ _id, contextTarget, dispatch, hasLocalStateLoaded, localTodoListState ])
 
   useEffect(() => {
     setLCDCharArray(`Tasks: ${ tasksMetadata.done } Done | ${ tasksMetadata.length - tasksMetadata.done } Left`.toUpperCase().split(''))

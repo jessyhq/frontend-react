@@ -178,7 +178,8 @@ const Music = ({ _id }: { _id: string }) => {
       else setCurrentPlayer(localMusicState.lastMusic.option)
       setHasLocalStateLoaded(true)
     }
-  }, [ handleMusicURL, hasLocalStateLoaded, localMusicState ])
+    return () => { if (contextTarget[ _id ] !== undefined) dispatch(updateContextTarget({ [ _id ]: undefined })) }
+  }, [ _id, contextTarget, dispatch, handleMusicURL, hasLocalStateLoaded, localMusicState ])
 
   // Return:
   return (
