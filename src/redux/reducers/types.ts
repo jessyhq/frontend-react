@@ -1,7 +1,7 @@
 // Typescript:
 import { TActionType } from '../actions/types'
 import { TTHEME } from '../../styles/types'
-import { ILocalStorageDb } from '../../indexedDB/types'
+import { IReduxIndexedDB } from '../../indexedDB/types'
 import { EXTENSION_TYPE } from '../../constants/indexedDB/objectStores'
 
 
@@ -12,7 +12,7 @@ export interface IContextTarget {
 export interface IStateGlobal {
   theme: TTHEME
   contextTarget: IContextTarget
-  localStorageDb: ILocalStorageDb
+  localStorageDb: IReduxIndexedDB
 }
 export interface IStateFooter {
   bounds: null | DOMRectReadOnly

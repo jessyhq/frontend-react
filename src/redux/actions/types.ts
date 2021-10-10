@@ -1,5 +1,5 @@
 // Typescript:
-import { ICoreObjectStore, IExtensionsObjectStore, ILocalStorageDb } from '../../indexedDB/types'
+import { IReduxCoreObjectStore, IReduxExtensionsObjectStore, IReduxIndexedDB } from '../../indexedDB/types'
 import {
   UPDATE_GLOBAL,
   UPDATE_FOOTER,
@@ -34,20 +34,20 @@ export interface IUpdateContextTarget {
 }
 
 export interface IUpdateLocalStorageDb {
-  (payload: Partial<ILocalStorageDb>): {
+  (payload: Partial<IReduxIndexedDB>): {
     type: typeof UPDATE_LOCAL_STORAGE_DB
-    payload: Partial<ILocalStorageDb>
+    payload: Partial<IReduxIndexedDB>
   }
 }
 
 export interface IDispatchCoreObjectStore {
   type: typeof UPDATE_CORE_OBJECT_STORE
-  payload: Partial<ICoreObjectStore>
+  payload: Partial<IReduxCoreObjectStore>
 }
 
 export interface IDispatchExtensionsObjectStore {
   type: typeof UPDATE_EXTENSIONS_OBJECT_STORE
-  payload: Partial<IExtensionsObjectStore>
+  payload: Partial<IReduxExtensionsObjectStore>
 }
 
 export type TActionType =
@@ -57,10 +57,11 @@ export type TActionType =
   typeof UPDATE_LOCAL_STORAGE_DB |
   typeof UPDATE_CORE_OBJECT_STORE |
   typeof UPDATE_EXTENSIONS_OBJECT_STORE
+
 export type IActionPayload =
   Partial<IStateGlobal> &
   Partial<IStateFooter> &
   Partial<IContextTarget> &
-  Partial<ILocalStorageDb> &
-  Partial<ICoreObjectStore> &
-  Partial<IExtensionsObjectStore>
+  Partial<IReduxIndexedDB> &
+  Partial<IReduxCoreObjectStore> &
+  Partial<IReduxExtensionsObjectStore>
