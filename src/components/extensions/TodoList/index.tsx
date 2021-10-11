@@ -4,11 +4,12 @@ import { useDispatch, useSelector } from 'react-redux'
 import useOuterContextMenu from '../../../hooks/use-outer-context-menu'
 import { Scrollbars } from 'react-custom-scrollbars-2'
 import { playButtonPress } from '../../../util/soundEffects'
+import { useUnmount } from 'react-use'
 import { DragDropContext, Droppable } from 'react-beautiful-dnd'
 
 
 // Typescript:
-import { IState } from '../../../redux/reducers/types'
+import { IReduxState } from '../../../redux/state/types'
 import { TTask } from '../../../types/taskItem'
 import { IObjectStoreExtensionTodoList } from '../../../indexedDB/types'
 
@@ -27,7 +28,8 @@ import LCDScreen from '../../global/LCDScreen'
 
 
 // Redux:
-import { updateContextTarget, updateObjectStore } from '../../../redux/actions'
+import { updateGlobalContextMenuTarget } from '../../../redux/actions/global'
+import { updateIndexedDBObjectStore } from '../../../redux/actions/indexedDB'
 
 
 // Styles:
@@ -59,12 +61,12 @@ const TodoList = ({ _id }: { _id: string }) => {
 
   // Ref:
   const wrapperRef = useOuterContextMenu((e) => {
-    if (contextTarget[ _id ] === EXTENSION_TYPE.TODO_LIST) dispatch(updateContextTarget({ [_id ]: undefined }))
+    if (contextTarget[ _id ] === EXTENSION_TYPE.TODO_LIST) dispatch(updateGlobalContextMenuTarget({ [_id ]: undefined }))
   })
 
   // State:
-  const localTodoListState = useSelector((state: IState) => state.global.localStorageDb.objectStores.extensions.todo_list[ _id ])
-  const contextTarget = useSelector((state: IState) => state.global.contextTarget)
+  const localTodoListState = useSelector((state: IReduxState) => state.indexedDB.objectStores.extensions.todo_list[ _id ])
+  const contextTarget = useSelector((state: IReduxState) => state.global.contextMenu.target)
   const [ hasLocalStateLoaded, setHasLocalStateLoaded ] = useState(false)
   const [ isOn, setIsOn ] = useState(true)
   const [ tasks, setTasks ] = useState<TTask[]>([])
@@ -80,7 +82,7 @@ const TodoList = ({ _id }: { _id: string }) => {
     playButtonPress()
     if (isOn) {
       setIsOn(false)
-      dispatch(updateObjectStore({
+      dispatch(updateIndexedDBObjectStore({
         [ EXTENSION_TYPE.TODO_LIST ]: {
           [ _id ]: {
             ...localTodoListState,
@@ -94,7 +96,7 @@ const TodoList = ({ _id }: { _id: string }) => {
       }, OBJECT_STORE.EXTENSIONS))
     } else {
       setIsOn(true)
-      dispatch(updateObjectStore({
+      dispatch(updateIndexedDBObjectStore({
         [ EXTENSION_TYPE.TODO_LIST ]: {
           [ _id ]: {
             ...localTodoListState,
@@ -113,7 +115,7 @@ const TodoList = ({ _id }: { _id: string }) => {
     const newTasks = Array.from(tasks)
     const [ removed ] = newTasks.splice(startIndex, 1)
     newTasks.splice(endIndex, 0, removed)
-    dispatch(updateObjectStore({
+    dispatch(updateIndexedDBObjectStore({
       [ EXTENSION_TYPE.TODO_LIST ]: {
         [ _id ]: {
           ...localTodoListState,
@@ -142,7 +144,7 @@ const TodoList = ({ _id }: { _id: string }) => {
     const newTasks = tasks, taskIndex = newTasks.findIndex(task => task._id === taskID)
     newTasks[ taskIndex ] = { ...newTasks[ taskIndex ], ...newTask }
     setTasks(newTasks)
-    dispatch(updateObjectStore({
+    dispatch(updateIndexedDBObjectStore({
       [ EXTENSION_TYPE.TODO_LIST ]: {
         [ _id ]: {
           ...localTodoListState,
@@ -173,7 +175,7 @@ const TodoList = ({ _id }: { _id: string }) => {
       title: ''
     })
     setTasks(newTasks)
-    dispatch(updateObjectStore({
+    dispatch(updateIndexedDBObjectStore({
       [ EXTENSION_TYPE.TODO_LIST ]: {
         [ _id ]: {
           ...localTodoListState,
@@ -191,7 +193,7 @@ const TodoList = ({ _id }: { _id: string }) => {
   const deleteTask = useCallback((taskID: string) => {
     const newTasks = tasks.filter(task => task._id !== taskID), taskToBeDeleted = tasks[ tasks.findIndex(task => task._id === taskID) ]
     setTasks(newTasks)
-    dispatch(updateObjectStore({
+    dispatch(updateIndexedDBObjectStore({
       [ EXTENSION_TYPE.TODO_LIST ]: {
         [ _id ]: {
           ...localTodoListState,
@@ -218,18 +220,19 @@ const TodoList = ({ _id }: { _id: string }) => {
       })
       setHasLocalStateLoaded(true)
     }
-    return () => { if (contextTarget[ _id ] !== undefined) dispatch(updateContextTarget({ [ _id ]: undefined })) }
   }, [ _id, contextTarget, dispatch, hasLocalStateLoaded, localTodoListState ])
 
   useEffect(() => {
     setLCDCharArray(`Tasks: ${ tasksMetadata.done } Done | ${ tasksMetadata.length - tasksMetadata.done } Left`.toUpperCase().split(''))
   }, [ tasksMetadata.done, tasksMetadata.length ])
 
+  useUnmount(() => { if (contextTarget[ _id ] !== undefined) dispatch(updateGlobalContextMenuTarget({ [ _id ]: undefined })) })
+
   // Return:
   return (
     <Wrapper
       ref={ wrapperRef }
-      onContextMenu={() => { if (!contextTarget[ _id ]) dispatch(updateContextTarget({ [ _id ]: EXTENSION_TYPE.TODO_LIST })) }}
+      onContextMenu={() => { if (!contextTarget[ _id ]) dispatch(updateGlobalContextMenuTarget({ [ _id ]: EXTENSION_TYPE.TODO_LIST })) }}
     >
       <InnerContainer className='draggableCancel'>
         <ScreenContainer isOn={ isOn }>

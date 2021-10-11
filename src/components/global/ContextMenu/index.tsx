@@ -9,7 +9,7 @@ import dateFormat from 'dateformat'
 
 
 // Typescript:
-import { IState } from '../../../redux/reducers/types'
+import { IReduxState } from '../../../redux/state/types'
 import { EXTENDED_MENU } from './types'
 
 
@@ -27,7 +27,14 @@ import { DEFAULT_EXTENSION_SIZE, DEFAULT_EXTENSION_STATE } from '../../../indexe
 
 
 // Redux:
-import { updateObjectStore, updateApp, deleteExtensionFromExtensionsObjectStore } from '../../../redux/actions'
+import {
+  // updateGlobalContextMenuRoot,
+  updateGlobalExtensions
+} from '../../../redux/actions/global'
+import {
+  updateIndexedDBObjectStore,
+  deleteExtensionsFromIndexedDBObjectStoreExtensions
+} from '../../../redux/actions/indexedDB'
 
 
 // Styles:
@@ -42,8 +49,8 @@ const MenuTemplate = styled.div`
   transition: filter 0.2s ease, margin-top 0.2s ease;
 `
 
-export const Wrapper = styled(MenuTemplate)<{ currentHeight: number, isShowing: boolean, invert: { X: boolean, Y: boolean } }>`
-  margin-top: ${ props => props.isShowing ? 0 : props.invert.Y ? -1 : 1 }rem;
+export const Wrapper = styled(MenuTemplate)<{ currentHeight: number, isVisible: boolean, invert: { X: boolean, Y: boolean } }>`
+  margin-top: ${ props => props.isVisible ? 0 : props.invert.Y ? -1 : 1 }rem;
   transform: ${ props => 'translate(' + (props.invert.X ? '-15.25rem, ' : '0.25rem, ') + (props.invert.Y ? `-${ props.currentHeight }.25rem` : '0.25rem') + ')'  };
 `
 
@@ -65,8 +72,8 @@ export const Option = styled.div<{ clickable: boolean }>`
   }
 `
 
-export const ExtendedMenu = styled(MenuTemplate)<{ isShowing: boolean }>`
-  margin-top: ${ props => props.isShowing ? 0 : 1 }rem;
+export const ExtendedMenu = styled(MenuTemplate)<{ isVisible: boolean }>`
+  margin-top: ${ props => props.isVisible ? 0 : 1 }rem;
   margin-left: 14rem;
 `
 
@@ -90,11 +97,11 @@ const ContextMenu = () => {
   const wrapperRef = useRef<any>(null)
 
   // State:
-  const contextTarget = useSelector((state: IState) => state.global.contextTarget)
-  const coreObjectStore = useSelector((state: IState) => state.global.localStorageDb.objectStores.core)
-  const extensionsObjectStore = useSelector((state: IState) => state.global.localStorageDb.objectStores.extensions)
-  const appState = useSelector((state: IState) => state.app)
-  const footerBounds = useSelector((state: IState) => state.footer.bounds)
+  const contextState = useSelector((state: IReduxState) => state.global.contextMenu)
+  const coreObjectStore = useSelector((state: IReduxState) => state.indexedDB.objectStores.core)
+  const extensionsObjectStore = useSelector((state: IReduxState) => state.indexedDB.objectStores.extensions)
+  const extensionsState = useSelector((state: IReduxState) => state.global.extensions)
+  const footerBounds = useSelector((state: IReduxState) => state.global.bounds.footer)
   const [ wrapperBounds, setWrapperBounds ] = useState<DOMRect | null>(null)
   const [ anchorPoint, setAnchorPoint ] = useState({ X: 0, Y: 0 })
   const [ isAlreadyActive, setIsAlreadyActive ] = useState(false)
@@ -110,13 +117,15 @@ const ContextMenu = () => {
     if (__DEV__) return
     setIsAlreadyActive(false)
     setIsShowing(false)
+    // dispatch(updateGlobalContextMenuRoot({ ...contextState, isVisible: false }))
     if (zIndex === 6000) {
       await new Promise(resolve => setTimeout(resolve, 200))
       setIsShowing(false)
+      // dispatch(updateGlobalContextMenuRoot({ ...contextState, isVisible: false }))
       setZIndex(-1)
     }
     setWrapperBounds(null)
-  }, [ __DEV__, zIndex ])
+  }, [__DEV__, zIndex])
 
   const handleClick = useCallback(async (event: MouseEvent | FocusEvent) => {
     if (__DEV__) return
@@ -130,12 +139,15 @@ const ContextMenu = () => {
     if (isShowing) {
       setIsAlreadyActive(true)
       setIsShowing(false)
+      // dispatch(updateGlobalContextMenuRoot({ ...contextState, isVisible: false }))
       await new Promise(resolve => setTimeout(resolve, 200))
       setIsShowing(true)
-    } if (zIndex === -1) setZIndex(6000) 
+      // dispatch(updateGlobalContextMenuRoot({ ...contextState, isVisible: true, time: { lastAccessed: Date.now() } }))
+    } if (zIndex === -1) setZIndex(6000)
     setAnchorPoint({ X: event.pageX, Y: event.pageY })
     setWrapperBounds(wrapperRef.current.getBoundingClientRect() as DOMRect)
     if (!isShowing) setIsShowing(true)
+    // dispatch(updateGlobalContextMenuRoot({ ...contextState, isVisible: true, time: { lastAccessed: Date.now() } }))
   }, [ isShowing, zIndex ])
 
   const deleteExtension = useCallback(() => {
@@ -148,58 +160,54 @@ const ContextMenu = () => {
     ] = [
       coreObjectStore.extensions,
       coreObjectStore.layout,
-      appState.extensions.zIndexes
+      extensionsState.zIndexes
     ]
     currentExtensions.splice(currentExtensions.findIndex(extension => extension._id === currentFocusedExtension._id), 1)
     currentLayout.splice(currentLayout.findIndex(layout => layout.i === currentFocusedExtension._id), 1)
-    dispatch(updateObjectStore({
+    dispatch(updateIndexedDBObjectStore({
       [ OBJECT_STORE_CORE_IDS.EXTENSIONS ]: currentExtensions,
       [ OBJECT_STORE_CORE_IDS.LAYOUT ]: currentLayout
     }, OBJECT_STORE.CORE))
-    dispatch(deleteExtensionFromExtensionsObjectStore([ currentFocusedExtension ]))
+    dispatch(deleteExtensionsFromIndexedDBObjectStoreExtensions([ currentFocusedExtension ]))
     const cursor = zIndexes[ currentFocusedExtension._id ]
     delete zIndexes[ currentFocusedExtension._id ]
     for (let [ _id, currentIndex ] of Object.entries(zIndexes)) {
       if (currentIndex < cursor) zIndexes[ _id ] = currentIndex
       else if (currentIndex > cursor) zIndexes[ _id ] = currentIndex - 1
     }
-    dispatch(updateApp({
-      extensions: {
-        ...appState.extensions,
-        length: appState.extensions.length - 1,
-        zIndexes: {
-          ...appState.extensions.zIndexes,
-          ...zIndexes
-        }
+    dispatch(updateGlobalExtensions({
+      ...extensionsState,
+      length: extensionsState.length - 1,
+      zIndexes: {
+        ...extensionsState.zIndexes,
+        ...zIndexes
       }
     }))
     closeMenu()
-  }, [ focusedExtension, coreObjectStore.extensions, coreObjectStore.layout, appState.extensions, dispatch, closeMenu ])
+  }, [ focusedExtension, coreObjectStore.extensions, coreObjectStore.layout, extensionsState, dispatch, closeMenu ])
 
   const addExtension = useCallback((extensionType: EXTENSION_TYPE) => {
-    const [ currentExtensions, currentLayout, newExtensionID, zIndexes ] = [ coreObjectStore.extensions, coreObjectStore.layout, nanoid(), appState.extensions.zIndexes ]
+    const [ currentExtensions, currentLayout, newExtensionID, zIndexes ] = [ coreObjectStore.extensions, coreObjectStore.layout, nanoid(), extensionsState.zIndexes ]
     currentExtensions.push({ _id: newExtensionID, type: extensionType })
     currentLayout.push({ i: newExtensionID, x: Math.floor(anchorPoint.X / 16), y: Math.floor(anchorPoint.Y / 16), ...DEFAULT_EXTENSION_SIZE[ extensionType ] })
-    dispatch(updateObjectStore({
+    dispatch(updateIndexedDBObjectStore({
       [ OBJECT_STORE_CORE_IDS.EXTENSIONS ]: currentExtensions,
       [ OBJECT_STORE_CORE_IDS.LAYOUT ]: currentLayout
     }, OBJECT_STORE.CORE))
-    dispatch(updateObjectStore({
+    dispatch(updateIndexedDBObjectStore({
       [ extensionType ]: { [ newExtensionID ]: DEFAULT_EXTENSION_STATE()[ extensionType ] }
     }, OBJECT_STORE.EXTENSIONS))
-    zIndexes[ newExtensionID ] = appState.extensions.length
-    dispatch(updateApp({
-      extensions: {
-        ...appState.extensions,
-        length: appState.extensions.length + 1,
-        zIndexes: {
-          ...appState.extensions.zIndexes,
-          ...zIndexes
-        }
+    zIndexes[ newExtensionID ] = extensionsState.length
+    dispatch(updateGlobalExtensions({
+      ...extensionsState,
+      length: extensionsState.length + 1,
+      zIndexes: {
+        ...extensionsState.zIndexes,
+        ...zIndexes
       }
     }))
     closeMenu()
-  }, [ anchorPoint.X, anchorPoint.Y, appState.extensions, closeMenu, coreObjectStore.extensions, coreObjectStore.layout, dispatch ])
+  }, [ anchorPoint.X, anchorPoint.Y, extensionsState, closeMenu, coreObjectStore.extensions, coreObjectStore.layout, dispatch ])
 
   // Effects:
   useEffect(() => {
@@ -215,7 +223,13 @@ const ContextMenu = () => {
 
   useEffect(() => {
     const extension: { _id?: string, type?: EXTENSION_TYPE } = {}
-    for (let key in contextTarget) { if (contextTarget[ key ] !== undefined) { extension._id = key; extension.type = contextTarget[ key ]; break } }
+    for (let key in contextState.target) {
+      if (contextState.target[ key ] !== undefined) {
+        extension._id = key
+        extension.type = contextState.target[ key ]
+        break
+      }
+    }
     setFocusedExtension(extension);
     (async () => {
       if (extension.type && extension._id && isFocusedOnExtension) {
@@ -223,7 +237,7 @@ const ContextMenu = () => {
         setExtensionLastEdited(extensionsObjectStore[ extension.type ][ extension._id ].time.lastEdited)
       }
     })()
-  }, [ contextTarget, extensionsObjectStore, isAlreadyActive, isFocusedOnExtension ])
+  }, [ contextState.target, extensionsObjectStore, isAlreadyActive, isFocusedOnExtension ])
 
   useDebounce(() => {
     if (!!focusedExtension._id) setIsFocusedOnExtension(true)
@@ -234,7 +248,7 @@ const ContextMenu = () => {
   return (
     <Wrapper
       ref={ wrapperRef }
-      isShowing={ isShowing }
+      isVisible={ isShowing }
       style={{
         top: anchorPoint.Y,
         left: anchorPoint.X,
@@ -277,7 +291,7 @@ const ContextMenu = () => {
             </span>
             <RiArrowRightSFill style={{ marginRight: '-0.5rem', marginBottom: '-0.2rem', fontSize: '1.5rem', color: Color(COLORS.WHITE).darken(0.5).hex() }} />
             <ExtendedMenu
-              isShowing={ activeExtendedMenu === EXTENDED_MENU.ADD_AN_EXTENSION }
+              isVisible={ activeExtendedMenu === EXTENDED_MENU.ADD_AN_EXTENSION }
               style={{
                 filter: activeExtendedMenu === EXTENDED_MENU.ADD_AN_EXTENSION ? 'opacity(1)' : 'opacity(0)'
               }}

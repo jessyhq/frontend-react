@@ -1,5 +1,5 @@
 // Packages:
-import { DBSchema, IDBPDatabase } from 'idb'
+import { DBSchema } from 'idb'
 import GridLayout from 'react-grid-layout'
 
 
@@ -82,24 +82,5 @@ export interface IIndexedDB extends DBSchema {
   } | {
     key: EXTENSION_TYPE.TODO_LIST
     value: IIndexedDBExtensionTodoList
-  }
-}
-
-export interface IReduxCoreObjectStore {
-  [ OBJECT_STORE_CORE_IDS.EXTENSIONS ]: IExtension[]
-  [ OBJECT_STORE_CORE_IDS.LAYOUT ]: GridLayout.Layout[]
-}
-
-export interface IReduxExtensionsObjectStore {
-  [ EXTENSION_TYPE.MUSIC ]: IObjectStoreExtensionMusic
-  [ EXTENSION_TYPE.TODO_LIST ]: IObjectStoreExtensionTodoList
-}
-
-export interface IReduxIndexedDB {
-  isFirstTime: boolean
-  db: IDBPDatabase<IIndexedDB> | null
-  objectStores: {
-    [ OBJECT_STORE.CORE ]: IReduxCoreObjectStore,
-    [ OBJECT_STORE.EXTENSIONS ]: IReduxExtensionsObjectStore
   }
 }

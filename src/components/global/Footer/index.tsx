@@ -5,7 +5,7 @@ import useResizeObserver from '@react-hook/resize-observer'
 
 
 // Redux:
-import { updateFooter } from '../../../redux/actions'
+import { updateGlobalBoundsRoot } from '../../../redux/actions/global'
 
 
 // Styles:
@@ -22,9 +22,9 @@ const Footer = () => {
 
   // Effects:
   useEffect(() => {
-    dispatch(updateFooter({ bounds: wrapperRef.current.getBoundingClientRect() }))
+    dispatch(updateGlobalBoundsRoot({ footer: wrapperRef.current.getBoundingClientRect() }))
   }, [ dispatch, wrapperRef ])
-  useResizeObserver(wrapperRef, () => dispatch(updateFooter({ bounds: wrapperRef.current.getBoundingClientRect() }))) // NOTE: Not using entry.contentRect
+  useResizeObserver(wrapperRef, () => dispatch(updateGlobalBoundsRoot({ footer: wrapperRef.current.getBoundingClientRect() }))) // NOTE: Not using entry.contentRect
 
   // Return:
   return (

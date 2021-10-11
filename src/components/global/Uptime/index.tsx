@@ -6,7 +6,7 @@ import { useInterval } from 'react-use'
 
 
 // Typescript:
-import { IState } from '../../../redux/reducers/types'
+import { IReduxState } from '../../../redux/state/types'
 
 
 // Constants:
@@ -15,8 +15,7 @@ import { TIME } from '../../../constants'
 
 
 // Redux:
-import { updateObjectStore } from '../../../redux/actions'
-
+import { updateIndexedDBObjectStore } from '../../../redux/actions/indexedDB'
 
 
 // Functions:
@@ -25,7 +24,7 @@ const Uptime = () => {
   const dispatch = useDispatch()
 
   // State:
-  const objectStores = useSelector((state: IState) => state.global.localStorageDb.objectStores)
+  const objectStores = useSelector((state: IReduxState) => state.indexedDB.objectStores)
   
   // Effects:
   useInterval(() => {
@@ -47,7 +46,7 @@ const Uptime = () => {
       }
       finalExtensionsObjectStore = defaultsDeep(finalExtensionsObjectStore, newExtensionState)
     })
-    dispatch(updateObjectStore(finalExtensionsObjectStore, OBJECT_STORE.EXTENSIONS))
+    dispatch(updateIndexedDBObjectStore(finalExtensionsObjectStore, OBJECT_STORE.EXTENSIONS))
   }, TIME.MINUTE)
   
   // Return:

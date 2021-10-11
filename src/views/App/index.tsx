@@ -10,7 +10,8 @@ import GridLayout, { WidthProvider } from 'react-grid-layout'
 
 
 // Typescript:
-import { IExtensionsZIndexes, IState } from '../../redux/reducers/types'
+import { IReduxState } from '../../redux/state/types'
+import { IExtensionsZIndexes } from '../../redux/state/types/global'
 import { IExtension, IIndexedDB, IObjectStoreExtensionMusic, IObjectStoreExtensionTodoList } from '../../indexedDB/types'
 
 
@@ -26,7 +27,8 @@ import TodoList from '../../components/extensions/TodoList'
 
 
 // Redux:
-import { updateApp, updateLocalStorageDb, updateObjectStore } from '../../redux/actions'
+import { updateGlobalExtensions } from '../../redux/actions/global'
+import { updateIndexedDBObjectStore, updateIndexedDBRoot } from '../../redux/actions/indexedDB'
 
 
 // Styles:
@@ -59,41 +61,39 @@ const App = () => {
   const dispatch = useDispatch()
 
   // State:
-  const localStorageDb = useSelector((state: IState) => state.global.localStorageDb)
-  const appState = useSelector((state: IState) => state.app)
+  const indexedDB = useSelector((state: IReduxState) => state.indexedDB)
+  const extensions = useSelector((state: IReduxState) => state.global.extensions)
   const [ focusedExtensionID, setFocusedExtensionID ] = useState<string | undefined>(undefined)
 
   // Functions:
   const rearrangeLayout = useCallback(() => {
     if (focusedExtensionID === undefined) return
-    const cursor = appState.extensions.zIndexes[ focusedExtensionID ]
+    const cursor = extensions.zIndexes[ focusedExtensionID ]
     const newExtensionsZIndexes: IExtensionsZIndexes = {}
-    for (let [ _id, currentIndex ] of Object.entries(appState.extensions.zIndexes)) {
-      if (currentIndex === cursor) newExtensionsZIndexes[ _id ] = appState.extensions.length - 1
+    for (let [ _id, currentIndex ] of Object.entries(extensions.zIndexes)) {
+      if (currentIndex === cursor) newExtensionsZIndexes[ _id ] = extensions.length - 1
       else if (currentIndex < cursor) newExtensionsZIndexes[ _id ] = currentIndex
       else if (currentIndex > cursor) newExtensionsZIndexes[ _id ] = currentIndex - 1
     }
-    dispatch(updateApp({
-      extensions: {
-        ...appState.extensions,
-        zIndexes: {
-          ...appState.extensions.zIndexes,
-          ...newExtensionsZIndexes
-        }
+    dispatch(updateGlobalExtensions({
+      ...extensions,
+      zIndexes: {
+        ...extensions.zIndexes,
+        ...newExtensionsZIndexes
       }
     }))
-  }, [ appState.extensions, dispatch, focusedExtensionID ])
+  }, [ extensions, dispatch, focusedExtensionID ])
 
   const updateRearrangeLayout = useCallback((newLayout: GridLayout.Layout[]) => {
     try {
       newLayout
-        .sort(layoutItem => appState.extensions.zIndexes[ layoutItem.i ] - newLayout.indexOf(layoutItem))
+        .sort(layoutItem => extensions.zIndexes[ layoutItem.i ] - newLayout.indexOf(layoutItem))
         .forEach((layoutItem, index, newLayout) => newLayout[ index ] = { h: layoutItem.h, i: layoutItem.i, w: layoutItem.w, x: layoutItem.x, y: layoutItem.y })
-      if (!isArrayEqual(newLayout, localStorageDb.objectStores.core.layout)) dispatch(updateObjectStore({ [ OBJECT_STORE_CORE_IDS.LAYOUT ]: newLayout }, OBJECT_STORE.CORE))
+      if (!isArrayEqual(newLayout, indexedDB.objectStores.core.layout)) dispatch(updateIndexedDBObjectStore({ [ OBJECT_STORE_CORE_IDS.LAYOUT ]: newLayout }, OBJECT_STORE.CORE))
     } catch(e) {
       console.error(e)
     }
-  }, [ dispatch, appState.extensions.zIndexes, localStorageDb.objectStores.core.layout ])
+  }, [ dispatch, extensions.zIndexes, indexedDB.objectStores.core.layout ])
 
   const renderSwitch = useCallback((extension: IExtension) => {
     switch(extension.type) {
@@ -121,19 +121,17 @@ const App = () => {
         if (isFirstTime) await populateIndexedDB(indexedDB)
         const extensions = ((await indexedDB.transaction(OBJECT_STORE.CORE, 'readonly').store.get(OBJECT_STORE_CORE_IDS.EXTENSIONS))?.value ?? []) as IExtension[]
         const layout = ((await indexedDB.transaction(OBJECT_STORE.CORE, 'readonly').store.get(OBJECT_STORE_CORE_IDS.LAYOUT))?.value ?? []) as GridLayout.Layout[]
-        dispatch(updateApp({
-          extensions: {
-            length: layout.length,
-            zIndexes: layout.reduce((accumulator, layoutItem, index) => ({ ...accumulator, [ layoutItem.i ]: index }), {})
-          }
+        dispatch(updateGlobalExtensions({
+          length: layout.length,
+          zIndexes: layout.reduce((accumulator, layoutItem, index) => ({ ...accumulator, [ layoutItem.i ]: index }), {})
         }))
-        dispatch(updateLocalStorageDb({ db: indexedDB, isFirstTime }))
-        dispatch(updateObjectStore({
+        dispatch(updateIndexedDBRoot({ db: indexedDB, isFirstTime }))
+        dispatch(updateIndexedDBObjectStore({
           [ OBJECT_STORE_CORE_IDS.EXTENSIONS ]: extensions,
           [ OBJECT_STORE_CORE_IDS.LAYOUT ]: layout
         }, OBJECT_STORE.CORE))
         const extensionsTransaction = indexedDB.transaction(OBJECT_STORE.EXTENSIONS, 'readonly')
-        dispatch(updateObjectStore({
+        dispatch(updateIndexedDBObjectStore({
           [ EXTENSION_TYPE.MUSIC ]: ((await extensionsTransaction.store.get(EXTENSION_TYPE.MUSIC))?.value ?? {}) as IObjectStoreExtensionMusic,
           [ EXTENSION_TYPE.TODO_LIST ]: ((await extensionsTransaction.store.get(EXTENSION_TYPE.TODO_LIST))?.value ?? {}) as IObjectStoreExtensionTodoList
         }, OBJECT_STORE.EXTENSIONS))
@@ -161,7 +159,7 @@ const App = () => {
             allowOverlap
             preventCollision
             compactType={ null }
-            // layout={ localStorageDb.objectStores.core.layout }
+            // layout={ indexedDB.objectStores.core.layout }
             // NOTE: see https://github.com/react-grid-layout/react-grid-layout/issues/1587
             // onLayoutChange={ layout => updateLayout(layout) }
             onDragStart={ rearrangeLayout }
@@ -169,12 +167,12 @@ const App = () => {
             draggableCancel='.draggableCancel'
           >
             {
-              localStorageDb.objectStores.core.extensions.map((extension) =>
+              indexedDB.objectStores.core.extensions.map((extension) =>
                 <span
                   key={ extension._id }
                   id={ extension._id }
-                  data-grid={ localStorageDb.objectStores.core.layout.find(layoutItem => layoutItem.i === extension._id) } // NOTE: bad performance, fix later.
-                  style={{ zIndex: appState.extensions.zIndexes[ extension._id ] }}
+                  data-grid={ indexedDB.objectStores.core.layout.find(layoutItem => layoutItem.i === extension._id) } // NOTE: bad performance, fix later.
+                  style={{ zIndex: extensions.zIndexes[ extension._id ] }}
                   onMouseOver={
                     () => {
                       if (focusedExtensionID === undefined || (focusedExtensionID !== undefined && focusedExtensionID !== extension._id)) setFocusedExtensionID(extension._id)
