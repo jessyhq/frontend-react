@@ -5,7 +5,6 @@ import Color from 'color'
 import { useDispatch, useSelector } from 'react-redux'
 import { openDB } from 'idb'
 import isArrayEqual from '../../util/isArrayEqual'
-// import isEqual from 'lodash/isEqual'
 import GridLayout, { WidthProvider } from 'react-grid-layout'
 
 
@@ -18,7 +17,7 @@ import { IExtension, IIndexedDB, IObjectStoreExtensionMusic, IObjectStoreExtensi
 // Constants:
 import COLORS from '../../styles/colors'
 import { OBJECT_STORE, OBJECT_STORE_CORE_IDS, EXTENSION_TYPE } from '../../constants/indexedDB/objectStores'
-import { populateIndexedDB } from '../../indexedDB'
+import { handleIndexedDBUpgrade } from '../../indexedDB'
 
 
 // Components:
@@ -111,22 +110,14 @@ const App = () => {
   useEffect(() => {
     (async () => {
       try {
-        let isFirstTime = false
-        const indexedDB = await openDB<IIndexedDB>('jessyLocalStorageDb', 1, {
-          upgrade: (db) => {
-            isFirstTime = true
-            db.createObjectStore(OBJECT_STORE.CORE, { keyPath: '_id', autoIncrement: false })
-            db.createObjectStore(OBJECT_STORE.EXTENSIONS, { keyPath: '_id', autoIncrement: false })
-          }
-        })
-        if (isFirstTime) await populateIndexedDB(indexedDB)
+        const indexedDB = await openDB<IIndexedDB>('jessyLocalStorageDb', 1, { upgrade: (db, _ov, _nv, transaction) => handleIndexedDBUpgrade(db, transaction) })
         const extensions = ((await indexedDB.transaction(OBJECT_STORE.CORE, 'readonly').store.get(OBJECT_STORE_CORE_IDS.EXTENSIONS))?.value ?? []) as IExtension[]
         const layout = ((await indexedDB.transaction(OBJECT_STORE.CORE, 'readonly').store.get(OBJECT_STORE_CORE_IDS.LAYOUT))?.value ?? []) as GridLayout.Layout[]
         dispatch(updateGlobalExtensions({
           length: layout.length,
           zIndexes: layout.reduce((accumulator, layoutItem, index) => ({ ...accumulator, [ layoutItem.i ]: index }), {})
         }))
-        dispatch(updateIndexedDBRoot({ db: indexedDB, isFirstTime }))
+        dispatch(updateIndexedDBRoot({ db: indexedDB }))
         dispatch(updateIndexedDBObjectStore({
           [ OBJECT_STORE_CORE_IDS.EXTENSIONS ]: extensions,
           [ OBJECT_STORE_CORE_IDS.LAYOUT ]: layout

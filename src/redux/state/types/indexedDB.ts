@@ -29,7 +29,6 @@ export interface IReduxStateIndexedDBObjectStoreExtensions {
 }
 
 export interface IReduxStateIndexedDB {
-  isFirstTime: boolean
   db: IDBPDatabase<IIndexedDB> | null
   objectStores: {
     [ OBJECT_STORE.CORE ]: IReduxStateIndexedDBObjectStoreCore,

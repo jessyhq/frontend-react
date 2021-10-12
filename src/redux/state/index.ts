@@ -27,7 +27,6 @@ const initialState : IReduxState = {
     theme: THEMES.LIGHT
   },
   indexedDB: {
-    isFirstTime: false,
     db: null,
     objectStores: {
       [ OBJECT_STORE.CORE ]: {
