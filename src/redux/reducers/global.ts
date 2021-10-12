@@ -33,7 +33,6 @@ const globalReducer = (state = initialState.global, action: IReduxGlobalAction) 
         }
       }
     case ACTION_TYPES.GLOBAL.CONTEXT_MENU.TARGET:
-      console.log(action.payload)
       const newTarget = {
         ...state.contextMenu.target,
         ...action.payload as IContextMenuTarget
