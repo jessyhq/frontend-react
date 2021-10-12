@@ -27,7 +27,7 @@ import TodoList from '../../components/extensions/TodoList'
 
 
 // Redux:
-import { updateGlobalExtensions } from '../../redux/actions/global'
+import { updateGlobalExtensions, updateGlobalContextMenuRoot } from '../../redux/actions/global'
 import { updateIndexedDBObjectStore, updateIndexedDBRoot } from '../../redux/actions/indexedDB'
 
 
@@ -66,7 +66,7 @@ const App = () => {
   const [ focusedExtensionID, setFocusedExtensionID ] = useState<string | undefined>(undefined)
 
   // Functions:
-  const rearrangeLayout = useCallback(() => {
+  const onDragStart = useCallback(() => {
     if (focusedExtensionID === undefined) return
     const cursor = extensions.zIndexes[ focusedExtensionID ]
     const newExtensionsZIndexes: IExtensionsZIndexes = {}
@@ -82,9 +82,10 @@ const App = () => {
         ...newExtensionsZIndexes
       }
     }))
+    dispatch(updateGlobalContextMenuRoot({ isActive: false, target: {} }))
   }, [ extensions, dispatch, focusedExtensionID ])
 
-  const updateRearrangeLayout = useCallback((newLayout: GridLayout.Layout[]) => {
+  const onDragStop = useCallback((newLayout: GridLayout.Layout[]) => {
     try {
       newLayout
         .sort(layoutItem => extensions.zIndexes[ layoutItem.i ] - newLayout.indexOf(layoutItem))
@@ -162,8 +163,8 @@ const App = () => {
             // layout={ indexedDB.objectStores.core.layout }
             // NOTE: see https://github.com/react-grid-layout/react-grid-layout/issues/1587
             // onLayoutChange={ layout => updateLayout(layout) }
-            onDragStart={ rearrangeLayout }
-            onDragStop={ updateRearrangeLayout }
+            onDragStart={ onDragStart }
+            onDragStop={ onDragStop }
             draggableCancel='.draggableCancel'
           >
             {

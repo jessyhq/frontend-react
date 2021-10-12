@@ -28,7 +28,7 @@ import { DEFAULT_EXTENSION_SIZE, DEFAULT_EXTENSION_STATE } from '../../../indexe
 
 // Redux:
 import {
-  // updateGlobalContextMenuRoot,
+  updateGlobalContextMenuRoot,
   updateGlobalExtensions
 } from '../../../redux/actions/global'
 import {
@@ -49,8 +49,8 @@ const MenuTemplate = styled.div`
   transition: filter 0.2s ease, margin-top 0.2s ease;
 `
 
-export const Wrapper = styled(MenuTemplate)<{ currentHeight: number, isVisible: boolean, invert: { X: boolean, Y: boolean } }>`
-  margin-top: ${ props => props.isVisible ? 0 : props.invert.Y ? -1 : 1 }rem;
+export const Wrapper = styled(MenuTemplate)<{ currentHeight: number, isShowing: boolean, invert: { X: boolean, Y: boolean } }>`
+  margin-top: ${ props => props.isShowing ? 0 : props.invert.Y ? -1 : 1 }rem;
   transform: ${ props => 'translate(' + (props.invert.X ? '-15.25rem, ' : '0.25rem, ') + (props.invert.Y ? `-${ props.currentHeight }.25rem` : '0.25rem') + ')'  };
 `
 
@@ -72,8 +72,8 @@ export const Option = styled.div<{ clickable: boolean }>`
   }
 `
 
-export const ExtendedMenu = styled(MenuTemplate)<{ isVisible: boolean }>`
-  margin-top: ${ props => props.isVisible ? 0 : 1 }rem;
+export const ExtendedMenu = styled(MenuTemplate)<{ isShowing: boolean }>`
+  margin-top: ${ props => props.isShowing ? 0 : 1 }rem;
   margin-left: 14rem;
 `
 
@@ -97,13 +97,14 @@ const ContextMenu = () => {
   const wrapperRef = useRef<any>(null)
 
   // State:
-  const contextState = useSelector((state: IReduxState) => state.global.contextMenu)
+  const contextMenuState = useSelector((state: IReduxState) => state.global.contextMenu)
   const coreObjectStore = useSelector((state: IReduxState) => state.indexedDB.objectStores.core)
   const extensionsObjectStore = useSelector((state: IReduxState) => state.indexedDB.objectStores.extensions)
   const extensionsState = useSelector((state: IReduxState) => state.global.extensions)
   const footerBounds = useSelector((state: IReduxState) => state.global.bounds.footer)
   const [ wrapperBounds, setWrapperBounds ] = useState<DOMRect | null>(null)
   const [ anchorPoint, setAnchorPoint ] = useState({ X: 0, Y: 0 })
+  const [ isActive, setIsActive ] = useState(false)
   const [ isAlreadyActive, setIsAlreadyActive ] = useState(false)
   const [ isShowing, setIsShowing ] = useState(false)
   const [ zIndex, setZIndex ] = useState(-1)
@@ -113,42 +114,63 @@ const ContextMenu = () => {
   const [ activeExtendedMenu, setActiveExtendedMenu ] = useState<EXTENDED_MENU | undefined>(undefined)
 
   // Functions:
-  const closeMenu = useCallback(async () => {
-    if (__DEV__) return
-    setIsAlreadyActive(false)
-    setIsShowing(false)
-    // dispatch(updateGlobalContextMenuRoot({ ...contextState, isVisible: false }))
-    if (zIndex === 6000) {
-      await new Promise(resolve => setTimeout(resolve, 200))
-      setIsShowing(false)
-      // dispatch(updateGlobalContextMenuRoot({ ...contextState, isVisible: false }))
-      setZIndex(-1)
-    }
-    setWrapperBounds(null)
-  }, [__DEV__, zIndex])
-
-  const handleClick = useCallback(async (event: MouseEvent | FocusEvent) => {
-    if (__DEV__) return
-    if (event.target === window) closeMenu()
-    else if (wrapperRef.current.contains(event.target)) return
-    closeMenu()
-  }, [ __DEV__, closeMenu ])
-
-  const handleContextMenu = useCallback(async (event: MouseEvent) => {
-    event.preventDefault()
+  const showMenu = useCallback(async () => {
     if (isShowing) {
       setIsAlreadyActive(true)
       setIsShowing(false)
-      // dispatch(updateGlobalContextMenuRoot({ ...contextState, isVisible: false }))
       await new Promise(resolve => setTimeout(resolve, 200))
       setIsShowing(true)
-      // dispatch(updateGlobalContextMenuRoot({ ...contextState, isVisible: true, time: { lastAccessed: Date.now() } }))
-    } if (zIndex === -1) setZIndex(6000)
+    } if (!isShowing) setIsShowing(true)
+    if (zIndex === -1) setZIndex(6000)
+  }, [ isShowing, zIndex ])
+
+  const hideMenu = useCallback(async () => {
+    if (__DEV__) return
+    setIsAlreadyActive(false)
+    setIsShowing(false)
+    if (zIndex === 6000) {
+      await new Promise(resolve => setTimeout(resolve, 200))
+      setIsShowing(false)
+      setZIndex(-1)
+    }
+    setWrapperBounds(null)
+  }, [ __DEV__, zIndex ])
+
+  const handleContextMenu = useCallback(async (event: MouseEvent) => {
+    event.preventDefault()
+    if (!isShowing) dispatch(updateGlobalContextMenuRoot({ isActive: true, time: { lastAccessed: Date.now() } }))
+    else await showMenu()
     setAnchorPoint({ X: event.pageX, Y: event.pageY })
     setWrapperBounds(wrapperRef.current.getBoundingClientRect() as DOMRect)
-    if (!isShowing) setIsShowing(true)
-    // dispatch(updateGlobalContextMenuRoot({ ...contextState, isVisible: true, time: { lastAccessed: Date.now() } }))
-  }, [ isShowing, zIndex ])
+  }, [ dispatch, isShowing, showMenu ])
+
+  const handleClick = useCallback(async (event: MouseEvent | FocusEvent) => {
+    if (__DEV__) return
+    if (event.target === window) dispatch(updateGlobalContextMenuRoot({ isActive: false }))
+    else if (!wrapperRef.current.contains(event.target)) dispatch(updateGlobalContextMenuRoot({ isActive: false }))
+  }, [ __DEV__, dispatch ])
+
+  const addExtension = useCallback((extensionType: EXTENSION_TYPE) => {
+    const [ currentExtensions, currentLayout, newExtensionID, zIndexes ] = [ coreObjectStore.extensions, coreObjectStore.layout, nanoid(), extensionsState.zIndexes ]
+    currentExtensions.push({ _id: newExtensionID, type: extensionType })
+    currentLayout.push({ i: newExtensionID, x: Math.floor(anchorPoint.X / 16), y: Math.floor(anchorPoint.Y / 16), ...DEFAULT_EXTENSION_SIZE[ extensionType ] })
+    zIndexes[ newExtensionID ] = extensionsState.length
+    dispatch(updateIndexedDBObjectStore({
+      [ OBJECT_STORE_CORE_IDS.EXTENSIONS ]: currentExtensions,
+      [ OBJECT_STORE_CORE_IDS.LAYOUT ]: currentLayout
+    }, OBJECT_STORE.CORE))
+    dispatch(updateIndexedDBObjectStore({
+      [ extensionType ]: { [ newExtensionID ]: DEFAULT_EXTENSION_STATE()[ extensionType ] }
+    }, OBJECT_STORE.EXTENSIONS))
+    dispatch(updateGlobalExtensions({
+      length: extensionsState.length + 1,
+      zIndexes: {
+        ...extensionsState.zIndexes,
+        ...zIndexes
+      }
+    }))
+    dispatch(updateGlobalContextMenuRoot({ isActive: false }))
+  }, [ coreObjectStore.extensions, coreObjectStore.layout, extensionsState, anchorPoint.X, anchorPoint.Y, dispatch ])
 
   const deleteExtension = useCallback(() => {
     if (focusedExtension._id === undefined || focusedExtension.type === undefined) return
@@ -176,57 +198,33 @@ const ContextMenu = () => {
       else if (currentIndex > cursor) zIndexes[ _id ] = currentIndex - 1
     }
     dispatch(updateGlobalExtensions({
-      ...extensionsState,
       length: extensionsState.length - 1,
       zIndexes: {
         ...extensionsState.zIndexes,
         ...zIndexes
       }
     }))
-    closeMenu()
-  }, [ focusedExtension, coreObjectStore.extensions, coreObjectStore.layout, extensionsState, dispatch, closeMenu ])
-
-  const addExtension = useCallback((extensionType: EXTENSION_TYPE) => {
-    const [ currentExtensions, currentLayout, newExtensionID, zIndexes ] = [ coreObjectStore.extensions, coreObjectStore.layout, nanoid(), extensionsState.zIndexes ]
-    currentExtensions.push({ _id: newExtensionID, type: extensionType })
-    currentLayout.push({ i: newExtensionID, x: Math.floor(anchorPoint.X / 16), y: Math.floor(anchorPoint.Y / 16), ...DEFAULT_EXTENSION_SIZE[ extensionType ] })
-    dispatch(updateIndexedDBObjectStore({
-      [ OBJECT_STORE_CORE_IDS.EXTENSIONS ]: currentExtensions,
-      [ OBJECT_STORE_CORE_IDS.LAYOUT ]: currentLayout
-    }, OBJECT_STORE.CORE))
-    dispatch(updateIndexedDBObjectStore({
-      [ extensionType ]: { [ newExtensionID ]: DEFAULT_EXTENSION_STATE()[ extensionType ] }
-    }, OBJECT_STORE.EXTENSIONS))
-    zIndexes[ newExtensionID ] = extensionsState.length
-    dispatch(updateGlobalExtensions({
-      ...extensionsState,
-      length: extensionsState.length + 1,
-      zIndexes: {
-        ...extensionsState.zIndexes,
-        ...zIndexes
-      }
-    }))
-    closeMenu()
-  }, [ anchorPoint.X, anchorPoint.Y, extensionsState, closeMenu, coreObjectStore.extensions, coreObjectStore.layout, dispatch ])
+    dispatch(updateGlobalContextMenuRoot({ isActive: false }))
+  }, [ focusedExtension._id, focusedExtension.type, coreObjectStore.extensions, coreObjectStore.layout, extensionsState, dispatch ])
 
   // Effects:
   useEffect(() => {
-    document.addEventListener('click', handleClick)
     document.addEventListener('contextmenu', handleContextMenu)
+    document.addEventListener('click', handleClick)
     window.addEventListener('blur', handleClick)
     return () => {
-      document.removeEventListener('click', handleClick)
       document.removeEventListener('contextmenu', handleContextMenu)
+      document.removeEventListener('click', handleClick)
       window.removeEventListener('blur', () => handleClick)
     }
   }, [ handleClick, handleContextMenu ])
 
   useEffect(() => {
     const extension: { _id?: string, type?: EXTENSION_TYPE } = {}
-    for (let key in contextState.target) {
-      if (contextState.target[ key ] !== undefined) {
+    for (let key in contextMenuState.target) {
+      if (contextMenuState.target[ key ] !== undefined) {
         extension._id = key
-        extension.type = contextState.target[ key ]
+        extension.type = contextMenuState.target[ key ]
         break
       }
     }
@@ -237,18 +235,26 @@ const ContextMenu = () => {
         setExtensionLastEdited(extensionsObjectStore[ extension.type ][ extension._id ].time.lastEdited)
       }
     })()
-  }, [ contextState.target, extensionsObjectStore, isAlreadyActive, isFocusedOnExtension ])
+  }, [ contextMenuState.target, extensionsObjectStore, isAlreadyActive, isFocusedOnExtension ])
 
   useDebounce(() => {
     if (!!focusedExtension._id) setIsFocusedOnExtension(true)
     else setIsFocusedOnExtension(false)
   }, isAlreadyActive ? 200 : 0, [ focusedExtension._id ])
 
+  useEffect(() => {
+    if (contextMenuState.isActive !== isActive) {
+      setIsActive(contextMenuState.isActive)
+      if (contextMenuState.isActive) showMenu()
+      else hideMenu()
+    }
+  }, [ contextMenuState.isActive, hideMenu, isActive, showMenu ])
+
   // Return:
   return (
     <Wrapper
       ref={ wrapperRef }
-      isVisible={ isShowing }
+      isShowing={ isShowing }
       style={{
         top: anchorPoint.Y,
         left: anchorPoint.X,
@@ -291,7 +297,7 @@ const ContextMenu = () => {
             </span>
             <RiArrowRightSFill style={{ marginRight: '-0.5rem', marginBottom: '-0.2rem', fontSize: '1.5rem', color: Color(COLORS.WHITE).darken(0.5).hex() }} />
             <ExtendedMenu
-              isVisible={ activeExtendedMenu === EXTENDED_MENU.ADD_AN_EXTENSION }
+              isShowing={ activeExtendedMenu === EXTENDED_MENU.ADD_AN_EXTENSION }
               style={{
                 filter: activeExtendedMenu === EXTENDED_MENU.ADD_AN_EXTENSION ? 'opacity(1)' : 'opacity(0)'
               }}

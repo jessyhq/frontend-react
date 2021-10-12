@@ -17,7 +17,7 @@ export interface IReduxStateGlobalBounds {
 }
 
 export interface IReduxStateGlobalContextMenu {
-  isVisible: boolean
+  isActive: boolean
   target: IContextMenuTarget
   time: {
     lastAccessed: number

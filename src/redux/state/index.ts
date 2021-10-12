@@ -14,7 +14,7 @@ const initialState : IReduxState = {
       footer: null
     },
     contextMenu: {
-      isVisible: false,
+      isActive: false,
       target: {},
       time: {
         lastAccessed: 0
