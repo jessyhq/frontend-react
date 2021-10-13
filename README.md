@@ -1,5 +1,5 @@
-# Jessy
-Jessy is a modular webapp that helps students study, available at [jessy.app](https://jessy.app).
+# jessy
+jessy is a modular webapp that helps students study, available at [jessy.app](https://jessy.app).
 
 ## Features
 1. Timer: WIP
@@ -11,8 +11,9 @@ Jessy is a modular webapp that helps students study, available at [jessy.app](ht
 7. Tasks: DONE
 
 Colors:
-  Primary: #F0A6CA
-  Secondary: #9C89B8
+  Primary: #F56476
+  Secondary: #E43F6F
+  Tertiary: #BE3E82
   White: #F0E6EF
   Black: #000100
 

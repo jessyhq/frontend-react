@@ -1,10 +1,25 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "jessy",
+  "name": "jessy: your own personal workspace",
   "icons": [
     {
+      "src": "16.ico",
+      "sizes": "16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "24.ico",
+      "sizes": "24x24",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "32.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    },
+    {
       "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
+      "sizes": "64x64",
       "type": "image/x-icon"
     },
     {
@@ -19,7 +34,8 @@
     }
   ],
   "start_url": ".",
-  "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "display": "fullscreen",
+  "theme_color": "#F56476",
+  "description": "✨ jessy is an infinitely customizable digital workspace for students and professionals with modularized work-tools that can be combined together, and a vibrant community that will make you feel right at home",
+  "background_color": "#F8F8FA"
 }
