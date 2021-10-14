@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import useOuterContextMenu from '../../../hooks/use-outer-context-menu'
 import { Scrollbars } from 'react-custom-scrollbars-2'
 import { playButtonPress } from '../../../util/soundEffects'
-import { useUnmount } from 'react-use'
+import { useDebounce, useUnmount } from 'react-use'
 import { DragDropContext, Droppable } from 'react-beautiful-dnd'
 
 
@@ -14,17 +14,13 @@ import { TTask } from '../../../types/taskItem'
 import { IObjectStoreExtensionTodoList } from '../../../indexedDB/types'
 
 
-// Imports:
-import { MdPowerSettingsNew } from 'react-icons/md'
-
-
 // Constants:
 import { OBJECT_STORE, EXTENSION_TYPE } from '../../../constants/indexedDB/objectStores'
 
 
 // Components:
+import WindowControls from '../../global/WindowControls'
 import TaskItem from '../../global/TaskItem'
-import LCDScreen from '../../global/LCDScreen'
 
 
 // Redux:
@@ -34,25 +30,32 @@ import { updateIndexedDBObjectStore } from '../../../redux/actions/indexedDB'
 
 // Styles:
 import {
-  Button,
-  Knob,
-  LEDLight
-} from '../../global/Skeumorphic'
-
-import {
   Wrapper,
-  InnerContainer,
-  ScreenContainer,
-  Screen,
-  UntouchabilityLayer,
-  Tasks,
-  AddTask,
-  Placeholder,
-  Buttons,
-  OuterEdge,
-  Name
+  TopBarTitle,
+  MainArea,
+  SearchBar,
+  SearchInput,
+  SearchIcon,
+  OptionsBar,
+  ActionButton,
+  OptionsIcon,
+  ProjectsArea,
+  Project,
+  ProjectTitle,
+  Board,
+  BoardTitle,
+  RightArrow,
+  ItemCount,
+  LastEdited,
+  TopBar,
+  BottomBar
 } from './styles'
 
+interface IInternalRouteHistoryObject {
+  _id: string
+  icon: string
+  name: string
+}
 
 // Functions:
 const TodoList = ({ _id }: { _id: string }) => {
@@ -67,6 +70,8 @@ const TodoList = ({ _id }: { _id: string }) => {
   // State:
   const localTodoListState = useSelector((state: IReduxState) => state.indexedDB.objectStores.extensions.todo_list[ _id ])
   const contextTarget = useSelector((state: IReduxState) => state.global.contextMenu.target)
+  const [ internalRouteHistory, setInternalRouteHistory ] = useState<IInternalRouteHistoryObject[]>([])
+  const [ level, setLevel ] = useState(1)
   const [ hasLocalStateLoaded, setHasLocalStateLoaded ] = useState(false)
   const [ isOn, setIsOn ] = useState(true)
   const [ tasks, setTasks ] = useState<TTask[]>([])
@@ -74,7 +79,6 @@ const TodoList = ({ _id }: { _id: string }) => {
     done: 0,
     length: tasks.length
   })
-  const [ LCDCharArray, setLCDCharArray ] = useState<string[]>([])
   const [ taskIndexBeingDragged, setTaskIndexBeingDragged ] = useState<number | undefined>(undefined)
 
   // Functions:
@@ -222,9 +226,7 @@ const TodoList = ({ _id }: { _id: string }) => {
     }
   }, [ _id, contextTarget, dispatch, hasLocalStateLoaded, localTodoListState ])
 
-  useEffect(() => {
-    setLCDCharArray(`Tasks: ${ tasksMetadata.done } Done | ${ tasksMetadata.length - tasksMetadata.done } Left`.toUpperCase().split(''))
-  }, [ tasksMetadata.done, tasksMetadata.length ])
+  useDebounce(() => setLevel(internalRouteHistory.length), 250, [ internalRouteHistory ])
 
   useUnmount(() => { if (contextTarget[ _id ] !== undefined) dispatch(updateGlobalContextMenuTarget({ [ _id ]: undefined })) })
 
@@ -234,65 +236,48 @@ const TodoList = ({ _id }: { _id: string }) => {
       ref={ wrapperRef }
       onContextMenu={() => { if (!contextTarget[ _id ]) dispatch(updateGlobalContextMenuTarget({ [ _id ]: EXTENSION_TYPE.TODO_LIST })) }}
     >
-      <InnerContainer className='draggableCancel'>
-        <ScreenContainer isOn={ isOn }>
-          {
-            !isOn && <UntouchabilityLayer />
-          }
-          <Screen isOn={ isOn }>
-            <Scrollbars
-              style={{ width: '100%', height: '100%' }}
-              renderTrackHorizontal={ props => <div { ...props } style={{ display: 'none' }} className='track-horizontal' /> }
-            >
-              <DragDropContext
-                onDragEnd={ onDragEnd }
-                onDragStart={ result => { setTaskIndexBeingDragged(result.source.index) }}
-              >
-                <Droppable droppableId={ `${ _id }-droppable` }>
-                  { provided => (
-                    <Tasks
-                      { ...provided.droppableProps }
-                      ref={ provided.innerRef }
-                    >
-                      <AddTask onClick={ addTask }>
-                        <Placeholder>add a new task</Placeholder>
-                      </AddTask>
-                      {
-                        tasks.filter(task => task.parentID === _id).map((task, index) => (
-                          <TaskItem
-                            index={ index }
-                            key={ task._id }
-                            task={ task }
-                            updateTask={ updateTask }
-                            deleteTask={ deleteTask }
-                            taskIndexBeingDragged={ taskIndexBeingDragged }
-                          />
-                        ))
-                      }
-                      { provided.placeholder }
-                    </Tasks>
-                  )}
-                </Droppable>
-              </DragDropContext>
-            </Scrollbars>
-          </Screen>
-        </ScreenContainer>
-        <Buttons>
-          <LCDScreen dimensions={{ W: 5, H: 2 }} isOn={ isOn } charArray={ LCDCharArray } />
-          <Button style={{ margin: 0 }}>
-            <Knob
-              selected={ false }
-              onClick={ onPowerButtonClick }
-            >
-              { !isOn ? <MdPowerSettingsNew style={{ color: 'lightseagreen' }} /> : <MdPowerSettingsNew style={{ color: 'palevioletred' }} /> }
-            </Knob>
-          </Button>
-        </Buttons>
-      </InnerContainer>
-      <OuterEdge>
-        <Name>TODO</Name>
-        <LEDLight active={ isOn }></LEDLight>
-      </OuterEdge>
+      <TopBar>
+        <TopBarTitle><span style={{ marginRight: '0.25rem' }}>✨</span><span>projects</span></TopBarTitle>
+        <WindowControls />
+      </TopBar>
+      <MainArea className='draggableCancel'>
+        <SearchBar>
+          <SearchIcon />
+          <SearchInput type='text' placeholder='search for a project or a board' />
+        </SearchBar>
+        <OptionsBar>
+          <ActionButton isEnabled={ true }>
+            + add a new project
+          </ActionButton>
+          <OptionsIcon />
+        </OptionsBar>
+        {
+          level === 0
+          &&
+          <ProjectsArea style={{ marginLeft: internalRouteHistory.length === 0 ? '0' : '-100%' }}>
+            <Project style={{ marginTop: 0 }}>
+              <ProjectTitle><span style={{ marginRight: '0.25rem' }}>🎈</span><span>school</span></ProjectTitle>
+              <Board onClick={ () => setInternalRouteHistory([ ...internalRouteHistory, { _id: 'chemistry', icon: '⚗️', name: 'chemistry' } ]) }>
+                <BoardTitle><span style={{ marginRight: '0.25rem' }}>⚗️</span><span>chemistry</span></BoardTitle>
+                <RightArrow />
+              </Board>
+              <Board onClick={ () => setInternalRouteHistory([ ...internalRouteHistory, { _id: 'chemistry', icon: '✍️', name: 'literature' } ]) }>
+                <BoardTitle><span style={{ marginRight: '0.25rem' }}>✍️️</span><span>literature</span></BoardTitle>
+                <RightArrow />
+              </Board>
+            </Project>
+          </ProjectsArea>
+        }
+        {
+          level === 1
+          &&
+          <></>
+        }
+      </MainArea>
+      <BottomBar>
+        <ItemCount>2 projects</ItemCount>
+        <LastEdited>last edited at 7:20 PM</LastEdited>
+      </BottomBar>
     </Wrapper>
   )
 }

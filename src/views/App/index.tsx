@@ -15,7 +15,8 @@ import { IExtension, IIndexedDB, IObjectStoreExtensionMusic, IObjectStoreExtensi
 
 
 // Constants:
-import COLORS from '../../styles/colors'
+import { COLORS } from '../../styles/colors'
+import { backgroundImages } from '../../assets'
 import { OBJECT_STORE, OBJECT_STORE_CORE_IDS, EXTENSION_TYPE } from '../../constants/indexedDB/objectStores'
 import { handleIndexedDBUpgrade } from '../../indexedDB'
 
@@ -43,12 +44,10 @@ const Background = styled.div`
   top: 0;
   left: 0;
   width: 100vw;
-  height: 97vh;
-  background-color: ${ COLORS.WHITE };
-  opacity: 0.6;
-  background-image: radial-gradient(${ Color(COLORS.BLACK).lighten(5).toString() } 1.15px, ${ COLORS.WHITE } 1.15px);
-  background-size: 1.5rem 1.5rem;
+  height: 100vh;
+  background-image: url(${ backgroundImages.ocean(window.innerHeight, window.innerWidth) });
   background-position: center;
+  background-size: cover;
 `
 
 

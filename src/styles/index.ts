@@ -3,7 +3,7 @@ import Color from 'color'
 
 
 // Constants:
-import COLORS from './colors'
+import { COLORS } from './colors'
 
 
 // Exports:

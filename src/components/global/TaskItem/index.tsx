@@ -15,7 +15,7 @@ import { ITaskItemProps } from './types'
 
 
 // Constants:
-import COLORS from '../../../styles/colors'
+import { COLORS } from '../../../styles/colors'
 import { generateRandomTaskName } from '../../../util/generateRandomTaskName'
 import { useInput } from '../../../hooks/use-input'
 

@@ -6,7 +6,7 @@ import { nanoid } from 'nanoid'
 // Constants:
 import { EXTENSION_TYPE, OBJECT_STORE, OBJECT_STORE_CORE_IDS } from '../constants/indexedDB/objectStores'
 import { IIndexedDB, IMusicState, ITodoListState } from '../indexedDB/types'
-import COLORS from '../styles/colors'
+import { COLORS } from '../styles/colors'
 import { PLAYER_TYPE } from '../constants/extensions/Music'
 
 
@@ -62,26 +62,33 @@ export const populateObjectStore = async (
       await Promise.all([
         transaction.objectStore(name).add({
           _id: OBJECT_STORE_CORE_IDS.EXTENSIONS,
-          value: [ { _id: IDList[0], type: EXTENSION_TYPE.MUSIC }, { _id: IDList[1], type: EXTENSION_TYPE.TODO_LIST }, { _id: IDList[2], type: EXTENSION_TYPE.TODO_LIST } ]
+          value: [
+            // { _id: IDList[0], type: EXTENSION_TYPE.MUSIC },
+            // { _id: IDList[1], type: EXTENSION_TYPE.TODO_LIST },
+            { _id: IDList[2], type: EXTENSION_TYPE.TODO_LIST }
+          ]
         }),
         transaction.objectStore(name).add({
           _id: OBJECT_STORE_CORE_IDS.LAYOUT,
           value: [
-            { i: IDList[0], x: 0, y: 48, ...DEFAULT_EXTENSION_SIZE[ EXTENSION_TYPE.MUSIC ] },
-            { i: IDList[1], x: 27, y: 0, ...DEFAULT_EXTENSION_SIZE[ EXTENSION_TYPE.TODO_LIST ] },
+            // { i: IDList[0], x: 0, y: 48, ...DEFAULT_EXTENSION_SIZE[ EXTENSION_TYPE.MUSIC ] },
+            // { i: IDList[1], x: 27, y: 0, ...DEFAULT_EXTENSION_SIZE[ EXTENSION_TYPE.TODO_LIST ] },
             { i: IDList[2], x: 0, y: 0, ...DEFAULT_EXTENSION_SIZE[ EXTENSION_TYPE.TODO_LIST ] }
           ]
         })
       ])
     } else if (name === OBJECT_STORE.EXTENSIONS) {
       await Promise.all([
-        transaction.objectStore(name).add({
-          _id: EXTENSION_TYPE.MUSIC,
-          value: { [ IDList[0] ]: DEFAULT_EXTENSION_STATE()[ EXTENSION_TYPE.MUSIC ] }
-        }),
+        // transaction.objectStore(name).add({
+        //   _id: EXTENSION_TYPE.MUSIC,
+        //   value: { [ IDList[0] ]: DEFAULT_EXTENSION_STATE()[ EXTENSION_TYPE.MUSIC ] }
+        // }),
         transaction.objectStore(name).add({
           _id: EXTENSION_TYPE.TODO_LIST,
-          value: { [ IDList[1] ]: DEFAULT_EXTENSION_STATE()[ EXTENSION_TYPE.TODO_LIST ], [ IDList[2] ]: DEFAULT_EXTENSION_STATE()[ EXTENSION_TYPE.TODO_LIST ] }
+          value: {
+            // [ IDList[1] ]: DEFAULT_EXTENSION_STATE()[ EXTENSION_TYPE.TODO_LIST ],
+            [ IDList[2] ]: DEFAULT_EXTENSION_STATE()[ EXTENSION_TYPE.TODO_LIST ]
+          }
         })
       ])
     }

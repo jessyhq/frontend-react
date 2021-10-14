@@ -5,7 +5,7 @@ import Color from 'color'
 
 
 // Constants:
-import COLORS from '../../../styles/colors'
+import { COLORS } from '../../../styles/colors'
 import { SMOOTH_INNER_SHADOW, SMOOTH_SHADOW } from '../../../styles'
 
 

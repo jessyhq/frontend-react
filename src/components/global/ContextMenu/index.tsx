@@ -21,7 +21,7 @@ import { RiArrowRightSFill } from 'react-icons/ri'
 
 
 // Constants:
-import COLORS from '../../../styles/colors'
+import { COLORS } from '../../../styles/colors'
 import { EXTENSION_TYPE, OBJECT_STORE, OBJECT_STORE_CORE_IDS } from '../../../constants/indexedDB/objectStores'
 import { DEFAULT_EXTENSION_SIZE, DEFAULT_EXTENSION_STATE } from '../../../indexedDB'
 

@@ -9,7 +9,7 @@ import { MdMoreVert, MdModeEdit, MdDelete } from 'react-icons/md'
 
 
 // Constants:
-import COLORS from '../../../styles/colors'
+import { COLORS } from '../../../styles/colors'
 
 
 // Exports:

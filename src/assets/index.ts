@@ -19,3 +19,6 @@ import ST6 from './strikeThrough/6.mp3'
 // Exports:
 export const buttonPressSoundEffects = [ BP0, BP1, BP2, BP3, BP4, BP5, BP6 ]
 export const strikeThroughSoundEffects = [ ST0, ST1, ST2, ST3, ST4, ST5, ST6 ]
+export const backgroundImages = {
+  ocean: (h: number, w: number) => `https://images.pexels.com/photos/685329/pexels-photo-685329.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=${ h }&w=${ w }`
+}
