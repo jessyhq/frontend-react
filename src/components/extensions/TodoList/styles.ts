@@ -5,12 +5,12 @@ import Color from 'color'
 
 // Imports:
 import { IoIosSearch } from 'react-icons/io'
+import { IoOptions } from 'react-icons/io5'
+import { RiArrowLeftSLine, RiArrowRightSLine } from 'react-icons/ri'
 
 
 // Constants:
 import { COLORS, SECONDARY_COLORS, THEME_COLOR } from '../../../styles/colors'
-import { IoOptions } from 'react-icons/io5'
-import { RiArrowRightSLine } from 'react-icons/ri'
 
 
 // Styles:
@@ -71,7 +71,6 @@ export const MainArea = styled.div`
   width: 100%;
   height: 100%;
   padding: 2.25rem 0;
-  overflow: hidden;
 `
 
 export const SearchBar = styled.div`
@@ -114,27 +113,46 @@ export const OptionsBar = styled.div`
   user-select: none;
 `
 
-export const ActionButton = styled.span<{ isEnabled: boolean }>`
-  margin: 0.5rem;
+export const ActionButtons = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 94.5%;
+  margin: 1rem 0.5rem;
+`
+
+export const ActionButton = styled.span<{ isEnabled: boolean, isVisible: boolean }>`
+  position: absolute;
+  margin-top: 0.5rem;
   padding: 0.3rem 0.5rem;
   font-size: 0.9rem;
   line-height: 0.9rem;
   color: ${ props => props.isEnabled ? SECONDARY_COLORS.ELEMENT.ACTIVE.DARK.hex() : SECONDARY_COLORS.ELEMENT.PASSIVE.DARK.hex() };
-  background-color: ${ props => props.isEnabled ? THEME_COLOR.OCEAN : SECONDARY_COLORS.WRAPPER.TRANSPARENT.PASSIVE(220).alpha(0.7).toString() };
+  background-color: ${ props => props.isEnabled ? THEME_COLOR.OCEAN : SECONDARY_COLORS.WRAPPER.TRANSPARENT.PASSIVE(220).darken(0.6).alpha(0.7).toString() };
   border-radius: 5px;
+  filter: opacity(${ props => props.isVisible ? 1 : 0 });
   cursor: pointer;
   transition: all 0.25s ease;
 
   &:hover {
+    color: ${ SECONDARY_COLORS.ELEMENT.ACTIVE.DARK.hex() };
     background-color: ${ props => props.isEnabled ? Color(THEME_COLOR.OCEAN).lighten(0.3).hex() : SECONDARY_COLORS.WRAPPER.TRANSPARENT.PASSIVE(220).alpha(0.7).toString() };
   }
 
   &:active {
-    background-color: ${ props => props.isEnabled ? THEME_COLOR.OCEAN : SECONDARY_COLORS.WRAPPER.TRANSPARENT.PASSIVE(220).alpha(0.7).toString() };
+    color: ${ SECONDARY_COLORS.ELEMENT.ACTIVE.DARK.hex() };
+    background-color: ${ props => props.isEnabled ? THEME_COLOR.OCEAN : SECONDARY_COLORS.WRAPPER.TRANSPARENT.PASSIVE(220).darken(0.2).alpha(0.7).toString() };
   }
 `
 
+export const GoBackIcon = styled(RiArrowLeftSLine)`
+  font-size: 0.9rem;
+  margin-right: 0.25rem;
+  color: ${ SECONDARY_COLORS.ELEMENT.PASSIVE.DARK.hex() };
+`
+
 export const OptionsIcon = styled(IoOptions)`
+  width: 5.5%;
   padding: 0.5rem;
   font-size: 1.2rem;
   color: ${ SECONDARY_COLORS.ELEMENT.PASSIVE.DARK.hex() };
@@ -150,7 +168,15 @@ export const OptionsIcon = styled(IoOptions)`
   }
 `
 
-export const ProjectsArea = styled.div`
+export const LevelsArea = styled.div`
+  position: relative;
+  width: 100%;
+  height: 83%;
+  overflow: hidden;
+`
+
+export const Projects = styled.div`
+  position: absolute;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -234,6 +260,39 @@ export const LastEdited = styled.div`
   }
 `
 
+export const Tasks = styled.div`
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-top: 0.5rem;
+  margin-left: 0;
+  user-select: none;
+  transition: all 0.25s ease;
+`
+
+export const AddTask = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 1rem;
+  padding: 0.8rem 0;
+  margin: 0 0.5rem;
+  color: ${ SECONDARY_COLORS.ELEMENT.ACTIVE.DARK.hex() };
+  background-color: ${ THEME_COLOR.OCEAN };
+  border-radius: 5px;
+  user-select: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+
+  &:hover {
+    background-color: ${ Color(THEME_COLOR.OCEAN).lighten(0.3).hex() };
+  }
+
+  &:active {
+    background-color: ${ THEME_COLOR.OCEAN };
+  }
+`
 
 
 
@@ -250,39 +309,6 @@ export const Placeholder = styled.div`
   user-select: none;
   cursor: pointer;
   transition: all 0.25s ease;
-`
-
-export const AddTask = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 92%;
-  height: 2rem;
-  margin-right: 1%;
-  margin-bottom: 0.75rem;
-  padding: 0.5rem 4%;
-  background-color: ${ Color(COLORS.WHITE).darken(0.1).hex() };
-  border-radius: 15px;
-  cursor: pointer;
-  transition: all 0.25s ease;
-
-  &:hover {
-    background-color: ${ Color(COLORS.PRIMARY).saturate(0.75).alpha(0.25).toString() };
-    transition: all 0.25s ease;
-  }
-
-  &:hover ${ Placeholder } {
-    color: ${ Color(COLORS.PRIMARY).darken(0.25).toString() };
-    transition: all 0.25s ease;
-  }
-`
-
-export const Tasks = styled.div`
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  width: 90%;
-  margin: auto;
 `
 
 export const TaskItemPlaceholder = styled.div`

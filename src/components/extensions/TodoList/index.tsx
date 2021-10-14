@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import useOuterContextMenu from '../../../hooks/use-outer-context-menu'
 import { Scrollbars } from 'react-custom-scrollbars-2'
 import { playButtonPress } from '../../../util/soundEffects'
-import { useDebounce, useUnmount } from 'react-use'
+import { useUnmount } from 'react-use'
 import { DragDropContext, Droppable } from 'react-beautiful-dnd'
 
 
@@ -39,7 +39,8 @@ import {
   OptionsBar,
   ActionButton,
   OptionsIcon,
-  ProjectsArea,
+  LevelsArea,
+  Projects,
   Project,
   ProjectTitle,
   Board,
@@ -48,7 +49,11 @@ import {
   ItemCount,
   LastEdited,
   TopBar,
-  BottomBar
+  BottomBar,
+  GoBackIcon,
+  ActionButtons,
+  Tasks,
+  AddTask
 } from './styles'
 
 interface IInternalRouteHistoryObject {
@@ -71,7 +76,11 @@ const TodoList = ({ _id }: { _id: string }) => {
   const localTodoListState = useSelector((state: IReduxState) => state.indexedDB.objectStores.extensions.todo_list[ _id ])
   const contextTarget = useSelector((state: IReduxState) => state.global.contextMenu.target)
   const [ internalRouteHistory, setInternalRouteHistory ] = useState<IInternalRouteHistoryObject[]>([])
-  const [ level, setLevel ] = useState(1)
+  const [ showLevel, setShowLevel ] = useState({
+    PROJECTS: true,
+    BOARD: false,
+    TASK: false
+  })
   const [ hasLocalStateLoaded, setHasLocalStateLoaded ] = useState(false)
   const [ isOn, setIsOn ] = useState(true)
   const [ tasks, setTasks ] = useState<TTask[]>([])
@@ -82,38 +91,21 @@ const TodoList = ({ _id }: { _id: string }) => {
   const [ taskIndexBeingDragged, setTaskIndexBeingDragged ] = useState<number | undefined>(undefined)
 
   // Functions:
-  const onPowerButtonClick = useCallback(() => {
-    playButtonPress()
-    if (isOn) {
-      setIsOn(false)
-      dispatch(updateIndexedDBObjectStore({
-        [ EXTENSION_TYPE.TODO_LIST ]: {
-          [ _id ]: {
-            ...localTodoListState,
-            isOn: false,
-            time: {
-              ...localTodoListState.time,
-              lastEdited: Date.now()
-            }
-          }
-        } as IObjectStoreExtensionTodoList
-      }, OBJECT_STORE.EXTENSIONS))
-    } else {
-      setIsOn(true)
-      dispatch(updateIndexedDBObjectStore({
-        [ EXTENSION_TYPE.TODO_LIST ]: {
-          [ _id ]: {
-            ...localTodoListState,
-            isOn: true,
-            time: {
-              ...localTodoListState.time,
-              lastEdited: Date.now()
-            }
-          }
-        } as IObjectStoreExtensionTodoList
-      }, OBJECT_STORE.EXTENSIONS))
+  const handleOnBoardClick = useCallback(async (_id: string, icon: string, name: string) => {
+    setShowLevel({ ...showLevel, BOARD: true })
+    setInternalRouteHistory([ ...internalRouteHistory, { _id, icon, name } ])
+    await new Promise(resolve => setTimeout(resolve, 250))
+    setShowLevel({ ...showLevel, BOARD: true, PROJECTS: false })
+  }, [])
+
+  const handleGoBack = useCallback(async (targetLevel: number) => {
+    if (targetLevel === 0) {
+      setShowLevel({ ...showLevel, PROJECTS: true })
+      setInternalRouteHistory(internalRouteHistory.slice(0, -1))
+      await new Promise(resolve => setTimeout(resolve, 250))
+      setShowLevel({ ...showLevel, PROJECTS: true, BOARD: false })
     }
-  }, [ _id, dispatch, isOn, localTodoListState ])
+  }, [])
 
   const reorderTasks = useCallback((tasks: TTask[], startIndex, endIndex) => {
     const newTasks = Array.from(tasks)
@@ -226,8 +218,6 @@ const TodoList = ({ _id }: { _id: string }) => {
     }
   }, [ _id, contextTarget, dispatch, hasLocalStateLoaded, localTodoListState ])
 
-  useDebounce(() => setLevel(internalRouteHistory.length), 250, [ internalRouteHistory ])
-
   useUnmount(() => { if (contextTarget[ _id ] !== undefined) dispatch(updateGlobalContextMenuTarget({ [ _id ]: undefined })) })
 
   // Return:
@@ -246,33 +236,39 @@ const TodoList = ({ _id }: { _id: string }) => {
           <SearchInput type='text' placeholder='search for a project or a board' />
         </SearchBar>
         <OptionsBar>
-          <ActionButton isEnabled={ true }>
-            + add a new project
-          </ActionButton>
+          <ActionButtons>
+            <ActionButton
+              isEnabled={ true }
+              isVisible={ internalRouteHistory.length === 0 }
+              style={{ zIndex: showLevel.PROJECTS ? 0 : -1  }}
+            >+ add a new project</ActionButton>
+            <ActionButton
+              isEnabled={ false }
+              isVisible={ internalRouteHistory.length === 1 }
+              style={{ left: 0, zIndex: showLevel.BOARD ? 0 : -1 }}
+              onClick={ () => handleGoBack(0) }
+            ><GoBackIcon />{ internalRouteHistory[ internalRouteHistory.length - 1 ]?.icon } { internalRouteHistory[ internalRouteHistory.length - 1 ]?.name }</ActionButton>
+          </ActionButtons>
           <OptionsIcon />
         </OptionsBar>
-        {
-          level === 0
-          &&
-          <ProjectsArea style={{ marginLeft: internalRouteHistory.length === 0 ? '0' : '-100%' }}>
+        <LevelsArea>
+          <Projects style={{ marginLeft: internalRouteHistory.length === 0 ? 0 : '-100%' }}>
             <Project style={{ marginTop: 0 }}>
               <ProjectTitle><span style={{ marginRight: '0.25rem' }}>🎈</span><span>school</span></ProjectTitle>
-              <Board onClick={ () => setInternalRouteHistory([ ...internalRouteHistory, { _id: 'chemistry', icon: '⚗️', name: 'chemistry' } ]) }>
+              <Board onClick={ () => handleOnBoardClick('chemistry', '⚗️', 'chemistry' ) }>
                 <BoardTitle><span style={{ marginRight: '0.25rem' }}>⚗️</span><span>chemistry</span></BoardTitle>
                 <RightArrow />
               </Board>
-              <Board onClick={ () => setInternalRouteHistory([ ...internalRouteHistory, { _id: 'chemistry', icon: '✍️', name: 'literature' } ]) }>
+              <Board onClick={ () => handleOnBoardClick('literature', '✍️', 'literature' ) }>
                 <BoardTitle><span style={{ marginRight: '0.25rem' }}>✍️️</span><span>literature</span></BoardTitle>
                 <RightArrow />
               </Board>
             </Project>
-          </ProjectsArea>
-        }
-        {
-          level === 1
-          &&
-          <></>
-        }
+          </Projects>
+          <Tasks style={{ marginLeft: internalRouteHistory.length === 0 ? '100%' : internalRouteHistory.length === 1 ? 0 : '-100%' }}>
+            <AddTask>add a new task</AddTask>
+          </Tasks>
+        </LevelsArea>
       </MainArea>
       <BottomBar>
         <ItemCount>2 projects</ItemCount>
