@@ -53,6 +53,7 @@ import {
   GoBackIcon,
   ActionButtons,
   Tasks,
+  TasksContainer,
   AddTask
 } from './styles'
 
@@ -266,7 +267,26 @@ const TodoList = ({ _id }: { _id: string }) => {
             </Project>
           </Projects>
           <Tasks style={{ marginLeft: internalRouteHistory.length === 0 ? '100%' : internalRouteHistory.length === 1 ? 0 : '-100%' }}>
-            <AddTask>add a new task</AddTask>
+            <TasksContainer>
+              <AddTask>add a new task</AddTask>
+              <TaskItem
+                index={ 0 }
+                key={ '12' }
+                task={{
+                  _id: '12',
+                  isDone: false,
+                  parentID: '234',
+                  time: {
+                    createdAt: Date.now(),
+                    lastEdited: Date.now()
+                  },
+                  title: 'example task item'
+                }}
+                updateTask={ updateTask }
+                deleteTask={ deleteTask }
+                taskIndexBeingDragged={ taskIndexBeingDragged }
+              />
+            </TasksContainer>
           </Tasks>
         </LevelsArea>
       </MainArea>

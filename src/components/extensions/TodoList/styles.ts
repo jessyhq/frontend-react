@@ -262,8 +262,6 @@ export const LastEdited = styled.div`
 
 export const Tasks = styled.div`
   position: absolute;
-  display: flex;
-  flex-direction: column;
   width: 100%;
   margin-top: 0.5rem;
   margin-left: 0;
@@ -271,13 +269,22 @@ export const Tasks = styled.div`
   transition: all 0.25s ease;
 `
 
+export const TasksContainer = styled.div`
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  height: 100%;
+  padding: 0 0.5rem;
+`
+
 export const AddTask = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
   height: 1rem;
+  margin-bottom: 0.5rem;
   padding: 0.8rem 0;
-  margin: 0 0.5rem;
   color: ${ SECONDARY_COLORS.ELEMENT.ACTIVE.DARK.hex() };
   background-color: ${ THEME_COLOR.OCEAN };
   border-radius: 5px;

@@ -23,20 +23,17 @@ import { useInput } from '../../../hooks/use-input'
 // Styles:
 import {
   Wrapper,
-  GrabHandle,
-  HalfGrabIcon,
   Edge,
   Checkbox,
   CheckmarkIcon,
-  Middle,
+  TaskTitle,
   LineSVG,
   TitleInput,
   Title,
   OptionsEdge,
   DoneIcon,
   EditIcon,
-  DeleteIcon,
-  BoxShadow
+  DeleteIcon
 } from './styles'
 
 
@@ -65,8 +62,7 @@ const TaskItem = ({ index, task, updateTask, deleteTask, taskIndexBeingDragged }
   // Functions:
   const generateScribble = useCallback(({ width, height }: { width: number, height: number }) => {
     let pathLength: number
-    const points: [ number, number ][] =
-      [ ...Array( Math.min(width, middleRef.current?.getBoundingClientRect().width ?? 220) / 5) ].map((_e, i) => [ i * 5, Math.floor(Math.random() * height) ])
+    const points: [ number, number ][] = [[0, 5]]
     const curve = d3Select(lineSVGRef.current)
       .selectAll('path')
       .data([points[points.length - 1]])
@@ -168,44 +164,41 @@ const TaskItem = ({ index, task, updateTask, deleteTask, taskIndexBeingDragged }
   
   // Return:
   return (
-    <Draggable key={ task._id } draggableId={ task._id } index={ index }>
-      {(provided, snapshot) => (
+    // <Draggable key={ task._id } draggableId={ task._id } index={ index }>
+    //   {(provided, snapshot) => (
         <Wrapper
-          ref={ provided.innerRef }
-          { ...provided.draggableProps }
-          style={
-            {
-              ...provided.draggableProps.style,
-              position: 'static',
-              transform: (() => {
-                if (taskIndexBeingDragged === undefined) return 'translate(0px, 0px)'
-                return snapshot.isDragging ?
-                  provided.draggableProps.style?.transform
-                :
-                  (index > taskIndexBeingDragged) ?
-                    provided.draggableProps.style?.transform === 'translate(0px, 60px)' ?
-                      ''
-                    :
-                      'translate(0px, -60px)'
-                  :
-                    (index < taskIndexBeingDragged) ?
-                      provided.draggableProps.style?.transform === null ?
-                        ''
-                      :
-                        'translate(0px, 60px)'
-                    :
-                    ''
-              })()
-            }
-          }
+          // ref={ provided.innerRef }
+          // { ...provided.draggableProps }
+          // { ...provided.dragHandleProps }
+          // style={
+          //   {
+          //     ...provided.draggableProps.style,
+          //     position: 'static',
+          //     transform: (() => {
+          //       if (taskIndexBeingDragged === undefined) return 'translate(0px, 0px)'
+          //       return snapshot.isDragging ?
+          //         provided.draggableProps.style?.transform
+          //       :
+          //         (index > taskIndexBeingDragged) ?
+          //           provided.draggableProps.style?.transform === 'translate(0px, 60px)' ?
+          //             ''
+          //           :
+          //             'translate(0px, -60px)'
+          //         :
+          //           (index < taskIndexBeingDragged) ?
+          //             provided.draggableProps.style?.transform === null ?
+          //               ''
+          //             :
+          //               'translate(0px, 60px)'
+          //           :
+          //           ''
+          //     })()
+          //   }
+          // }
           index={ index }
           mountStatus={ mountStatus }
           isTaskDeleted={ isTaskDeleted }
         >
-          <GrabHandle { ...provided.dragHandleProps }>
-            <HalfGrabIcon style={{ marginLeft: '-1.3rem' }} />
-            <HalfGrabIcon />
-          </GrabHandle>
           <Edge>
             <Checkbox
               isChecked={ isTaskDone }
@@ -219,22 +212,22 @@ const TaskItem = ({ index, task, updateTask, deleteTask, taskIndexBeingDragged }
             >
               <CheckmarkIcon isvisible={ `${ isTaskDone }` } />
             </Checkbox>
+            <TaskTitle ref={ middleRef }>
+              <LineSVG
+                ref={ lineSVGRef }
+                width={ scribbleDimensions.width + 5 }
+                height={ scribbleDimensions.height * 2 }
+                viewBox={ `0 0 ${ scribbleDimensions.width - 5 > 0 ? scribbleDimensions.width - 5 : scribbleDimensions.width } ${ scribbleDimensions.height }` }
+                preserveAspectRatio='xMidYMid meet'
+              />
+              {
+                isEditing ?
+                  <TitleInput type='text' placeholder={ titlePlaceHolder } { ...bindTaskTitle } autoFocus={ isEditing } />
+                :
+                  <Title isStrikethrough={ isTaskDone }>{ taskTitle }</Title>
+              }
+            </TaskTitle>
           </Edge>
-          <Middle ref={ middleRef }>
-            <LineSVG
-              ref={ lineSVGRef }
-              width={ scribbleDimensions.width + 5 }
-              height={ scribbleDimensions.height * 2 }
-              viewBox={ `0 0 ${ scribbleDimensions.width - 5 > 0 ? scribbleDimensions.width - 5 : scribbleDimensions.width } ${ scribbleDimensions.height }` }
-              preserveAspectRatio='xMidYMid meet'
-            />
-            {
-              isEditing ?
-                <TitleInput type='text' placeholder={ titlePlaceHolder } { ...bindTaskTitle } autoFocus={ isEditing } />
-              :
-                <Title isStrikethrough={ isTaskDone }>{ taskTitle }</Title>
-            }
-          </Middle>
           <OptionsEdge shouldHideWhenNotHovering={ isEditing }>
             {
               isEditing ?
@@ -250,10 +243,10 @@ const TaskItem = ({ index, task, updateTask, deleteTask, taskIndexBeingDragged }
             }
             <DeleteIcon isvisible={ `${ isTaskDone }` } onClick={ () => setIsTaskDeleted({ ...isTaskDeleted, transitionSet: true }) } />
           </OptionsEdge>
-          <BoxShadow style={{ boxShadow: snapshot.isDragging ? `0px 1px 10px -5px ${ Color(COLORS.WHITE).darken(0.25).hex() }` : '' }} />
+          {/* <BoxShadow style={{ boxShadow: snapshot.isDragging ? `0px 1px 10px -5px ${ Color(COLORS.WHITE).darken(0.25).hex() }` : '' }} /> */}
         </Wrapper>
-      )}
-    </Draggable>
+    //   )}
+    // </Draggable>
   )
 }
 
