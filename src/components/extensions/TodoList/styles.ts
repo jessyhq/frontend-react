@@ -127,7 +127,7 @@ export const ActionButton = styled.span<{ isEnabled: boolean, isVisible: boolean
   padding: 0.3rem 0.5rem;
   font-size: 0.9rem;
   line-height: 0.9rem;
-  color: ${ props => props.isEnabled ? SECONDARY_COLORS.ELEMENT.ACTIVE.DARK.hex() : SECONDARY_COLORS.ELEMENT.PASSIVE.DARK.hex() };
+  color: ${ props => props.isEnabled ? SECONDARY_COLORS.ELEMENT.ACTIVE.DARK.hex() : SECONDARY_COLORS.ELEMENT.ACTIVE.DARK.hex() };
   background-color: ${ props => props.isEnabled ? THEME_COLOR.OCEAN : SECONDARY_COLORS.WRAPPER.TRANSPARENT.PASSIVE(220).darken(0.6).alpha(0.7).toString() };
   border-radius: 5px;
   filter: opacity(${ props => props.isVisible ? 1 : 0 });
@@ -303,11 +303,6 @@ export const AddTask = styled.div`
 
 
 
-
-
-
-
-
 export const Placeholder = styled.div`
   position: relative;
   color: ${ Color(COLORS.WHITE).darken(0.5).hex() };
@@ -331,28 +326,102 @@ export const TaskItemPlaceholder = styled.div`
   pointer-events: none;
 `
 
-export const Buttons = styled.div`
-  display: flex;
-  justify-content: space-around;
-  flex-direction: row;
-  width: 94%;
-  height: 12.5%;
-  margin: 3%;
-`
 
-export const OuterEdge = styled.div`
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  flex-direction: row;
-  width: 35%;
-  height: 5%;
-  margin: 2.5% 0%;
-  border-radius: 10px;
-`
 
-export const Name = styled.div`
-  font-size: 1.1rem;
-  color: ${ Color(COLORS.WHITE).darken(0.3).hex() };
+export const TaskDetails = styled.div`
+  position: absolute;
+  width: 100%;
+  margin-top: 0.5rem;
+  margin-left: 0;
   user-select: none;
+  transition: all 0.25s ease;
+`
+
+export const DescriptionContainer = styled.div`
+  margin: 0.5rem 1rem;
+`
+
+export const Description = styled.textarea`
+  width: 100%;
+  height: 4.1rem;
+  padding: 0.5rem;
+  font-weight: 300;
+  font-size: 0.875rem;
+  color: ${ SECONDARY_COLORS.ELEMENT.ACTIVE.DARK.hex() };
+  line-height: 1rem;
+  background-color: transparent;
+  border: 1px solid ${ SECONDARY_COLORS.BORDER_COLOR.DARK(220).lighten(0.3).toString() };
+  border-radius: 5px;
+  outline: none;
+  resize: none;
+  box-sizing: border-box;
+  transition: all 0.25s ease;
+
+  &:focus {
+    background-color: ${ Color(THEME_COLOR.OCEAN).alpha(0.2).toString() };
+    border: 1px solid ${ THEME_COLOR.OCEAN };
+  }
+
+  &:hover {
+    background-color: ${ Color(THEME_COLOR.OCEAN).alpha(0.2).toString() };
+  }
+
+  &::placeholder {
+    color: ${ SECONDARY_COLORS.ELEMENT.PASSIVE.DARK.lighten(0.2).hex() };
+    transition: all 0.25s ease;
+  }
+
+  &:focus::placeholder {
+    color: ${ Color(THEME_COLOR.OCEAN).lighten(0.6).alpha(0.9).toString() };
+  }
+
+  &:hover::placeholder {
+    color: ${ Color(THEME_COLOR.OCEAN).lighten(0.6).alpha(0.9).toString() };
+  }
+`
+
+export const OptionsSection = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0.8rem 1rem;
+`
+
+export const TagsField = styled.input`
+  width: 60%;
+  margin-right: 0.8rem;
+  padding: 0.5rem;
+  font-weight: 300;
+  font-size: 0.875rem;
+  color: ${ SECONDARY_COLORS.ELEMENT.ACTIVE.DARK.hex() };
+  line-height: 1rem;
+  background-color: transparent;
+  border: 1px solid ${ SECONDARY_COLORS.BORDER_COLOR.DARK(220).lighten(0.3).toString() };
+  border-radius: 5px;
+  outline: none;
+  resize: none;
+  box-sizing: border-box;
+  transition: all 0.25s ease;
+
+  &:focus {
+    background-color: ${ Color(THEME_COLOR.OCEAN).alpha(0.2).toString() };
+    border: 1px solid ${ THEME_COLOR.OCEAN };
+  }
+
+  &:hover {
+    background-color: ${ Color(THEME_COLOR.OCEAN).alpha(0.2).toString() };
+  }
+
+  &::placeholder {
+    color: ${ SECONDARY_COLORS.ELEMENT.PASSIVE.DARK.lighten(0.2).hex() };
+    transition: all 0.25s ease;
+  }
+
+  &:focus::placeholder {
+    color: ${ Color(THEME_COLOR.OCEAN).lighten(0.6).alpha(0.9).toString() };
+  }
+
+  &:hover::placeholder {
+    color: ${ Color(THEME_COLOR.OCEAN).lighten(0.6).alpha(0.9).toString() };
+  }
 `

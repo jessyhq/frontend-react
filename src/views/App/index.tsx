@@ -1,7 +1,7 @@
 // Packages:
 import React, { useEffect, useCallback, useState } from 'react'
 import styled from 'styled-components'
-import Color from 'color'
+// import Color from 'color'
 import { useDispatch, useSelector } from 'react-redux'
 import { openDB } from 'idb'
 import isArrayEqual from '../../util/isArrayEqual'
@@ -15,7 +15,7 @@ import { IExtension, IIndexedDB, IObjectStoreExtensionMusic, IObjectStoreExtensi
 
 
 // Constants:
-import { COLORS } from '../../styles/colors'
+// import { COLORS } from '../../styles/colors'
 import { backgroundImages } from '../../assets'
 import { OBJECT_STORE, OBJECT_STORE_CORE_IDS, EXTENSION_TYPE } from '../../constants/indexedDB/objectStores'
 import { handleIndexedDBUpgrade } from '../../indexedDB'

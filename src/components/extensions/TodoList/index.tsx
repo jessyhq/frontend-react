@@ -1,11 +1,14 @@
 // Packages:
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useRef, useState, useCallback, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useInput } from '../../../hooks/use-input'
 import useOuterContextMenu from '../../../hooks/use-outer-context-menu'
 import { Scrollbars } from 'react-custom-scrollbars-2'
 import { playButtonPress } from '../../../util/soundEffects'
 import { useUnmount } from 'react-use'
 import { DragDropContext, Droppable } from 'react-beautiful-dnd'
+import Lottie from 'react-lottie-player/dist/LottiePlayerLight'
+// import Lottie from 'react-lottie-player'
 
 
 // Typescript:
@@ -21,6 +24,7 @@ import { OBJECT_STORE, EXTENSION_TYPE } from '../../../constants/indexedDB/objec
 // Components:
 import WindowControls from '../../global/WindowControls'
 import TaskItem from '../../global/TaskItem'
+import FocusedTaskItem from '../../global/TaskItem/FocusedTaskItem'
 
 
 // Redux:
@@ -54,8 +58,15 @@ import {
   ActionButtons,
   Tasks,
   TasksContainer,
-  AddTask
+  AddTask,
+  TaskDetails,
+  DescriptionContainer,
+  Description,
+  OptionsSection,
+  TagsField
 } from './styles'
+import PriorityInput from '../../global/PriorityInput'
+import { PRIORITY_VALUES } from '../../global/PriorityInput/types'
 
 interface IInternalRouteHistoryObject {
   _id: string
@@ -72,11 +83,16 @@ const TodoList = ({ _id }: { _id: string }) => {
   const wrapperRef = useOuterContextMenu((e) => {
     if (contextTarget[ _id ] === EXTENSION_TYPE.TODO_LIST) dispatch(updateGlobalContextMenuTarget({ [_id ]: undefined }))
   })
+  const lottieJSON = useRef<object | undefined>(undefined)
 
   // State:
   const localTodoListState = useSelector((state: IReduxState) => state.indexedDB.objectStores.extensions.todo_list[ _id ])
   const contextTarget = useSelector((state: IReduxState) => state.global.contextMenu.target)
-  const [ internalRouteHistory, setInternalRouteHistory ] = useState<IInternalRouteHistoryObject[]>([])
+  const [ internalRouteHistory, setInternalRouteHistory ] = useState<IInternalRouteHistoryObject[]>([{
+    _id: 'projects',
+    icon: '✨',
+    name: 'projects'
+  }])
   const [ showLevel, setShowLevel ] = useState({
     PROJECTS: true,
     BOARD: false,
@@ -90,6 +106,7 @@ const TodoList = ({ _id }: { _id: string }) => {
     length: tasks.length
   })
   const [ taskIndexBeingDragged, setTaskIndexBeingDragged ] = useState<number | undefined>(undefined)
+  const { value: taskDescription, bind: bindTaskDescription } = useInput('')
 
   // Functions:
   const handleOnBoardClick = useCallback(async (_id: string, icon: string, name: string) => {
@@ -97,16 +114,16 @@ const TodoList = ({ _id }: { _id: string }) => {
     setInternalRouteHistory([ ...internalRouteHistory, { _id, icon, name } ])
     await new Promise(resolve => setTimeout(resolve, 250))
     setShowLevel({ ...showLevel, BOARD: true, PROJECTS: false })
-  }, [])
+  }, [ internalRouteHistory, showLevel ])
 
   const handleGoBack = useCallback(async (targetLevel: number) => {
-    if (targetLevel === 0) {
+    if (targetLevel === 1) {
       setShowLevel({ ...showLevel, PROJECTS: true })
       setInternalRouteHistory(internalRouteHistory.slice(0, -1))
       await new Promise(resolve => setTimeout(resolve, 250))
       setShowLevel({ ...showLevel, PROJECTS: true, BOARD: false })
     }
-  }, [])
+  }, [ internalRouteHistory, showLevel ])
 
   const reorderTasks = useCallback((tasks: TTask[], startIndex, endIndex) => {
     const newTasks = Array.from(tasks)
@@ -206,7 +223,18 @@ const TodoList = ({ _id }: { _id: string }) => {
     else setTasksMetadata({ ...tasksMetadata, length: tasksMetadata.length - 1 })
   }, [ _id, dispatch, localTodoListState, tasks, tasksMetadata ])
 
+  const handleTaskItemClick = useCallback(async (taskID: string, isTaskDone: boolean, name: string) => {
+    setShowLevel({ ...showLevel, TASK: true })
+    setInternalRouteHistory([ ...internalRouteHistory, { _id: taskID, icon: isTaskDone ? '✅' : '🖊️', name } ])
+    await new Promise(resolve => setTimeout(resolve, 250))
+    setShowLevel({ ...showLevel, TASK: true, BOARD: false })
+  }, [ internalRouteHistory, showLevel ])
+
   // Effects:
+  useEffect(() => {
+    (async () => lottieJSON.current = await (await fetch('https://assets5.lottiefiles.com/packages/lf20_rovf9gzu.json')).json())()
+  }, [])
+
   useEffect(() => {
     if (localTodoListState && !hasLocalStateLoaded) {
       setIsOn(localTodoListState.isOn)
@@ -228,9 +256,15 @@ const TodoList = ({ _id }: { _id: string }) => {
       onContextMenu={() => { if (!contextTarget[ _id ]) dispatch(updateGlobalContextMenuTarget({ [ _id ]: EXTENSION_TYPE.TODO_LIST })) }}
     >
       <TopBar>
-        <TopBarTitle><span style={{ marginRight: '0.25rem' }}>✨</span><span>projects</span></TopBarTitle>
+        <TopBarTitle><span style={{ marginRight: '0.25rem' }}>{ internalRouteHistory[ internalRouteHistory.length - 1 ]?.icon }</span><span>{ internalRouteHistory[ internalRouteHistory.length - 1 ]?.name }</span> - <b>tasks</b></TopBarTitle>
         <WindowControls />
       </TopBar>
+      {/* <Lottie
+        animationData={ lottieJSON.current }
+        loop={ false }
+        play
+        style={{ position: 'absolute', zIndex: -1, width: '100%', height: '100%' }}
+      /> */}
       <MainArea className='draggableCancel'>
         <SearchBar>
           <SearchIcon />
@@ -240,20 +274,23 @@ const TodoList = ({ _id }: { _id: string }) => {
           <ActionButtons>
             <ActionButton
               isEnabled={ true }
-              isVisible={ internalRouteHistory.length === 0 }
+              isVisible={ internalRouteHistory.length === 1 }
               style={{ zIndex: showLevel.PROJECTS ? 0 : -1  }}
             >+ add a new project</ActionButton>
             <ActionButton
               isEnabled={ false }
-              isVisible={ internalRouteHistory.length === 1 }
-              style={{ left: 0, zIndex: showLevel.BOARD ? 0 : -1 }}
-              onClick={ () => handleGoBack(0) }
-            ><GoBackIcon />{ internalRouteHistory[ internalRouteHistory.length - 1 ]?.icon } { internalRouteHistory[ internalRouteHistory.length - 1 ]?.name }</ActionButton>
+              isVisible={ internalRouteHistory.length > 1 }
+              style={{ left: 0, zIndex: (showLevel.BOARD || showLevel.TASK) ? 0 : -1 }}
+              onClick={ () => handleGoBack(1) }
+            >
+              <GoBackIcon style={{ marginBottom: '-0.1rem' }} />
+              { internalRouteHistory[ internalRouteHistory.length - 2 ]?.icon } { internalRouteHistory[ internalRouteHistory.length - 2 ]?.name }
+            </ActionButton>
           </ActionButtons>
           <OptionsIcon />
         </OptionsBar>
         <LevelsArea>
-          <Projects style={{ marginLeft: internalRouteHistory.length === 0 ? 0 : '-100%' }}>
+          <Projects style={{ marginLeft: internalRouteHistory.length === 1 ? 0 : '-100%' }}>
             <Project style={{ marginTop: 0 }}>
               <ProjectTitle><span style={{ marginRight: '0.25rem' }}>🎈</span><span>school</span></ProjectTitle>
               <Board onClick={ () => handleOnBoardClick('chemistry', '⚗️', 'chemistry' ) }>
@@ -266,7 +303,7 @@ const TodoList = ({ _id }: { _id: string }) => {
               </Board>
             </Project>
           </Projects>
-          <Tasks style={{ marginLeft: internalRouteHistory.length === 0 ? '100%' : internalRouteHistory.length === 1 ? 0 : '-100%' }}>
+          <Tasks style={{ marginLeft: internalRouteHistory.length === 1 ? '100%' : internalRouteHistory.length === 2 ? 0 : '-100%' }}>
             <TasksContainer>
               <AddTask>add a new task</AddTask>
               <TaskItem
@@ -284,10 +321,31 @@ const TodoList = ({ _id }: { _id: string }) => {
                 }}
                 updateTask={ updateTask }
                 deleteTask={ deleteTask }
+                handleTaskItemClick={ handleTaskItemClick }
                 taskIndexBeingDragged={ taskIndexBeingDragged }
               />
             </TasksContainer>
           </Tasks>
+          <TaskDetails style={{ marginLeft: internalRouteHistory.length === 3 ? 0 : '100%' }}>
+            <FocusedTaskItem
+              task={{
+                _id: '12',
+                isDone: false,
+                parentID: '234',
+                time: {
+                  createdAt: Date.now(),
+                  lastEdited: Date.now()
+                },
+                title: 'example task item'
+              }}
+              updateTask={ updateTask }
+            />
+            <DescriptionContainer><Description placeholder='add a description..' { ...bindTaskDescription } /></DescriptionContainer>
+            <OptionsSection>
+              <TagsField type='text' placeholder='add #tags' />
+              <PriorityInput currentPriority={ PRIORITY_VALUES.NORMAL } />
+            </OptionsSection>
+          </TaskDetails>
         </LevelsArea>
       </MainArea>
       <BottomBar>

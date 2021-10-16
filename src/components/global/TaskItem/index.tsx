@@ -1,6 +1,7 @@
 // Packages:
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import Color from 'color'
+import { useInput } from '../../../hooks/use-input'
 import { Draggable } from 'react-beautiful-dnd'
 import { select as d3Select } from 'd3-selection'
 import { transition as d3Transition } from 'd3-transition'
@@ -17,7 +18,6 @@ import { ITaskItemProps } from './types'
 // Constants:
 import { COLORS } from '../../../styles/colors'
 import { generateRandomTaskName } from '../../../util/generateRandomTaskName'
-import { useInput } from '../../../hooks/use-input'
 
 
 // Styles:
@@ -40,7 +40,7 @@ import {
 // Functions:
 d3Select.prototype.transition = d3Transition
 
-const TaskItem = ({ index, task, updateTask, deleteTask, taskIndexBeingDragged }: ITaskItemProps) => {
+const TaskItem = ({ index, task, updateTask, deleteTask, handleTaskItemClick, taskIndexBeingDragged }: ITaskItemProps) => {
   // Ref:
   const middleRef = useRef<HTMLDivElement | null>(null)
   const lineSVGRef = useRef<SVGSVGElement | null>(null)
@@ -62,7 +62,9 @@ const TaskItem = ({ index, task, updateTask, deleteTask, taskIndexBeingDragged }
   // Functions:
   const generateScribble = useCallback(({ width, height }: { width: number, height: number }) => {
     let pathLength: number
-    const points: [ number, number ][] = [[0, 5]]
+    const points: [ number, number ][] = [
+      ...Array( Math.round(Math.min(width, middleRef.current?.getBoundingClientRect().width ?? 220) / 5))
+    ].map((_e, i) => [ i * 5, Math.floor(Math.random() * height) ])
     const curve = d3Select(lineSVGRef.current)
       .selectAll('path')
       .data([points[points.length - 1]])
@@ -71,7 +73,7 @@ const TaskItem = ({ index, task, updateTask, deleteTask, taskIndexBeingDragged }
           enter
             .append('path')
             .attr('fill', 'none')
-            .attr('stroke', Color(COLORS.WHITE).darken(0.75).alpha(0.5).toString())
+            .attr('stroke', Color(COLORS.WHITE).lighten(0.25).alpha(0.35).toString())
             .attr('stroke-width', 2.5)
             .attr('shape-rendering', 'geometricPrecision')
             .attr('d', line().curve(curveCardinal)(points))
@@ -212,23 +214,27 @@ const TaskItem = ({ index, task, updateTask, deleteTask, taskIndexBeingDragged }
             >
               <CheckmarkIcon isvisible={ `${ isTaskDone }` } />
             </Checkbox>
-            <TaskTitle ref={ middleRef }>
-              <LineSVG
-                ref={ lineSVGRef }
-                width={ scribbleDimensions.width + 5 }
-                height={ scribbleDimensions.height * 2 }
-                viewBox={ `0 0 ${ scribbleDimensions.width - 5 > 0 ? scribbleDimensions.width - 5 : scribbleDimensions.width } ${ scribbleDimensions.height }` }
-                preserveAspectRatio='xMidYMid meet'
-              />
-              {
-                isEditing ?
-                  <TitleInput type='text' placeholder={ titlePlaceHolder } { ...bindTaskTitle } autoFocus={ isEditing } />
-                :
-                  <Title isStrikethrough={ isTaskDone }>{ taskTitle }</Title>
-              }
-            </TaskTitle>
           </Edge>
-          <OptionsEdge shouldHideWhenNotHovering={ isEditing }>
+          <TaskTitle
+            ref={ middleRef }
+            onClick={ () => isEditing ? null : handleTaskItemClick(task.title, isTaskDone, task.title) }
+          >
+            <LineSVG
+              ref={ lineSVGRef }
+              width={ scribbleDimensions.width + 5 }
+              height={ scribbleDimensions.height * 2 }
+              style={{ zIndex: isEditing ? -1 : 1 }}
+              viewBox={ `0 0 ${ scribbleDimensions.width - 5 > 0 ? scribbleDimensions.width - 5 : scribbleDimensions.width } ${ scribbleDimensions.height }` }
+              preserveAspectRatio='xMidYMid meet'
+            />
+            {
+              isEditing ?
+                <TitleInput type='text' placeholder={ titlePlaceHolder } { ...bindTaskTitle } autoFocus={ isEditing } />
+              :
+                <Title isStrikethrough={ isTaskDone }>{ taskTitle }</Title>
+            }
+          </TaskTitle>
+          <OptionsEdge isVisible={ isEditing }>
             {
               isEditing ?
                 <DoneIcon isvisible={ `${ taskTitle.length > 0 }` } onClick={ onTaskTitleEdited } />
@@ -241,7 +247,7 @@ const TaskItem = ({ index, task, updateTask, deleteTask, taskIndexBeingDragged }
                   }
                 />
             }
-            <DeleteIcon isvisible={ `${ isTaskDone }` } onClick={ () => setIsTaskDeleted({ ...isTaskDeleted, transitionSet: true }) } />
+            <DeleteIcon isvisible={ `${ isTaskDone && !isEditing }` } onClick={ () => setIsTaskDeleted({ ...isTaskDeleted, transitionSet: true }) } />
           </OptionsEdge>
           {/* <BoxShadow style={{ boxShadow: snapshot.isDragging ? `0px 1px 10px -5px ${ Color(COLORS.WHITE).darken(0.25).hex() }` : '' }} /> */}
         </Wrapper>

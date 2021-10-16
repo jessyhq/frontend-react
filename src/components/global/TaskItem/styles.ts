@@ -5,28 +5,33 @@ import Color from 'color'
 
 // Imports:
 import { ImCheckmark } from 'react-icons/im'
-import { MdMoreVert, MdModeEdit, MdDelete } from 'react-icons/md'
+import { MdModeEdit, MdDelete } from 'react-icons/md'
 
 
 // Constants:
-import { COLORS, SECONDARY_COLORS, THEME_COLOR } from '../../../styles/colors'
+import {
+  COLORS,
+  SECONDARY_COLORS,
+  THEME_COLOR
+} from '../../../styles/colors'
 
 
 // Exports:
 export const Edge = styled.div`
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100%;
-  margin-left: 0.5rem;
+  align-items: start;
+  width: 7%;
+  margin-left: 0.6rem;
 `
 
-export const OptionsEdge = styled(Edge)<{ shouldHideWhenNotHovering: boolean }>`
+export const OptionsEdge = styled(Edge)<{ isVisible: boolean }>`
+  align-items: center;
   width: 1rem;
   height: 1rem;
   margin: 0;
-  margin-right: 0.5rem;
-  filter: ${ props => props.shouldHideWhenNotHovering ? 'opacity(1)' : 'opacity(0)' };
+  margin-right: 0.6rem;
+  filter: ${ props => props.isVisible ? 'opacity(1)' : 'opacity(0)' };
   transition: all 0.25s ease;
 `
 
@@ -81,8 +86,7 @@ export const Wrapper = styled.div<{ index: number, mountStatus: -1 | 0 | 1 | 2, 
 `
 
 export const CheckmarkIcon = styled(ImCheckmark)<{ isvisible: string }>`
-  font-size: 0.75rem;
-  margin-right: 1px;
+  font-size: 0.7rem;
   color: ${ props => props.isvisible === 'true' ? SECONDARY_COLORS.ELEMENT.ACTIVE.DARK.hex() : 'transparent' };
   transition: all 0.25s ease;
 `
@@ -91,11 +95,27 @@ export const Checkbox = styled.div<{ isChecked: boolean, isClickable: boolean }>
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.2rem;
+  height: 1.2rem;
   border-radius: 5px;
-  border: 1px solid ${ props => props.isChecked ? THEME_COLOR.OCEAN : SECONDARY_COLORS.BORDER_COLOR.DARK(220).lighten(0.7).alpha(1).toString() };
-  background-color: ${ props => props.isChecked ? Color(THEME_COLOR.OCEAN).alpha(0.5).toString() : SECONDARY_COLORS.WRAPPER.SOLID.DARK.lighten(0.2).alpha(0.7).toString() };
+  border: 1px solid ${
+    props => props.isChecked ?
+      THEME_COLOR.OCEAN
+    :
+      props.isClickable ?
+        SECONDARY_COLORS.BORDER_COLOR.DARK(220).lighten(0.7).alpha(1).toString()
+      :
+        'transparent'
+    };
+  background-color: ${
+    props => props.isChecked ?
+      Color(THEME_COLOR.OCEAN).alpha(0.5).toString()
+    :
+      props.isClickable ?
+        SECONDARY_COLORS.WRAPPER.SOLID.DARK.lighten(0.2).alpha(0.5).toString()
+      :
+        SECONDARY_COLORS.WRAPPER.SOLID.DARK.lighten(0.2).alpha(0.3).toString()
+  };
   cursor: ${ props => props.isClickable ? 'pointer' : 'default' };
   transition: all 0.25s ease;
 
@@ -112,40 +132,50 @@ export const Checkbox = styled.div<{ isChecked: boolean, isClickable: boolean }>
         props.isClickable ?
           SECONDARY_COLORS.ELEMENT.PASSIVE.DARK.hex()
         :
-          SECONDARY_COLORS.ELEMENT.PASSIVE.DARK.hex()
+          ''
     };
     transition: all 0.25s ease;
   }
 `
 
-export const TaskTitle = styled.div`
+export const TaskTitle = styled.div<{ isNotPointy?: boolean }>`
   display: flex;
   align-items: center;
-  height: 100%;
-  margin-left: 0.5rem;
+  width: 86%;
+  height: 2.5rem;
+  margin-left: 0.6rem;
   font-weight: 500;
   color: ${ COLORS.BLACK };
+  line-height: 1.2rem;
+  cursor: ${ props => props.isNotPointy ? 'unset' : 'pointer' };
 `
 
 export const LineSVG = styled.svg`
   position: absolute;
-  z-index: -1;
   max-width: 67%;
 `
 
 export const TitleInput = styled.input`
-  margin-left: -1%;
+  width: 100%;
+  height: 100%;
+  margin-bottom: 0.1rem;
+  margin-left: -0.125rem;
   font-weight: 500;
   font-size: 1rem;
   color: ${ SECONDARY_COLORS.ELEMENT.ACTIVE.DARK.hex() };
+  line-height: 1.1rem;
   background-color: transparent;
   border: none;
   outline: none;
+
+  &::placeholder {
+    color: ${ SECONDARY_COLORS.ELEMENT.PLACEHOLDER.DARK.lighten(0.2).hex() };
+  }
 `
 
 export const Title = styled.div<{ isStrikethrough: boolean }>`
   position: relative;
-  color: ${ SECONDARY_COLORS.ELEMENT.ACTIVE.DARK.hex() };
+  color: ${ props => props.isStrikethrough ? SECONDARY_COLORS.ELEMENT.PASSIVE.DARK.hex() : SECONDARY_COLORS.ELEMENT.ACTIVE.DARK.hex() };
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -156,7 +186,9 @@ export const Title = styled.div<{ isStrikethrough: boolean }>`
 
 export const DoneIcon = styled(ImCheckmark)<{ isvisible: string }>`
   position: absolute;
-  font-size: 1.25rem;
+  margin-right: 0.2rem;
+  padding: ${ props => props.isvisible === 'true' ? '0.6rem' : '0rem' };
+  font-size: 1.1rem;
   color: ${ SECONDARY_COLORS.ELEMENT.PASSIVE.DARK.hex() };
   filter: ${ props => props.isvisible === 'true' ? 'opacity(1)' : 'opacity(0)' };
   transform: ${ props => props.isvisible === 'true' ? 'scale(1)' : 'scale(0.8)' };
@@ -165,7 +197,7 @@ export const DoneIcon = styled(ImCheckmark)<{ isvisible: string }>`
   transition: all 0.25s ease;
 
   &:hover {
-    color: lightseagreen;
+    color: ${ SECONDARY_COLORS.ELEMENT.ACTIVE.DARK.hex() };
     transition: all 0.25s ease;
   }
 `
@@ -173,6 +205,7 @@ export const DoneIcon = styled(ImCheckmark)<{ isvisible: string }>`
 export const EditIcon = styled(MdModeEdit)<{ isvisible: string }>`
   position: absolute;
   margin-left: ${ props => props.isvisible === 'true' ? '0rem' : '-2rem' };
+  padding: ${ props => props.isvisible === 'true' ? '0.5rem' : '0rem' };
   font-size: ${ props => props.isvisible === 'true' ? '1.25rem' : '0rem' };
   color: ${ SECONDARY_COLORS.ELEMENT.PASSIVE.DARK.hex() };
   user-select: none;
@@ -180,7 +213,7 @@ export const EditIcon = styled(MdModeEdit)<{ isvisible: string }>`
   transition: color 0.25s ease, margin 0.5s ease, font-size 0.5s ease;
 
   &:hover {
-    color: ${ Color(COLORS.WHITE).darken(0.75).toString() };
+    color: ${ SECONDARY_COLORS.ELEMENT.ACTIVE.DARK.hex() };
     transition: all 0.25s ease;
   }
 `
@@ -188,6 +221,7 @@ export const EditIcon = styled(MdModeEdit)<{ isvisible: string }>`
 export const DeleteIcon = styled(MdDelete)<{ isvisible: string }>`
   position: absolute;
   margin-right: ${ props => props.isvisible === 'true' ? '0rem' : '-2rem' };
+  padding: ${ props => props.isvisible === 'true' ? '0.5rem' : '0rem' };
   font-size: ${ props => props.isvisible === 'true' ? '1.25rem' : '0rem' };
   color: ${ SECONDARY_COLORS.ELEMENT.PASSIVE.DARK.hex() };
   user-select: none;
@@ -195,7 +229,7 @@ export const DeleteIcon = styled(MdDelete)<{ isvisible: string }>`
   transition: color 0.25s ease, margin 0.5s ease, font-size 0.5s ease;
 
   &:hover {
-    color: palevioletred;
+    color: ${ SECONDARY_COLORS.ELEMENT.ACTIVE.DARK.hex() };
     transition: all 0.25s ease;
   }
 `
