@@ -6,9 +6,20 @@ import React from 'react'
 import { PRIORITY_VALUES } from './types'
 
 
+// Imports:
+import { CgArrowsExchangeV } from 'react-icons/cg'
+
+
+// Constants:
+import { SECONDARY_COLORS } from '../../../styles/colors'
+
+
 // Styles:
 import {
-  Wrapper
+  Wrapper,
+  Current,
+  Details,
+  PriorityDot
 } from './styles'
 
 
@@ -35,7 +46,11 @@ const PRIORITY_TYPE = {
 const PriorityInput = ({ currentPriority }: { currentPriority: PRIORITY_VALUES }) => {
   return (
     <Wrapper>
-      
+      <Current>
+        <Details><PriorityDot style={{ backgroundColor: PRIORITY_TYPE[ currentPriority ].color }} />{ PRIORITY_TYPE[ currentPriority ].name }</Details>
+        <CgArrowsExchangeV style={{ width: '1rem', height: '1rem', color: SECONDARY_COLORS.ELEMENT.PASSIVE.DARK.toString() }} />
+      </Current>
+      {/* <OptionsOverlay></OptionsOverlay> */}
     </Wrapper>
   )
 }

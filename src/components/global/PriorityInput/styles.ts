@@ -27,3 +27,26 @@ export const Wrapper = styled.div`
     background-color: ${ Color(THEME_COLOR.OCEAN).alpha(0.2).toString() };
   }
 `
+
+export const Current = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+`
+
+export const Details = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`
+
+export const PriorityDot = styled.div`
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-right: 0.5rem;
+  border-radius: 50%;
+`
+
+// export const 
