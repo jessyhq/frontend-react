@@ -301,8 +301,6 @@ export const AddTask = styled.div`
   }
 `
 
-
-
 export const Placeholder = styled.div`
   position: relative;
   color: ${ Color(COLORS.WHITE).darken(0.5).hex() };
@@ -325,8 +323,6 @@ export const TaskItemPlaceholder = styled.div`
   flex-grow: 0;
   pointer-events: none;
 `
-
-
 
 export const TaskDetails = styled.div`
   position: absolute;
@@ -381,6 +377,7 @@ export const Description = styled.textarea`
 `
 
 export const OptionsSection = styled.div`
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -424,4 +421,32 @@ export const TagsField = styled.input`
   &:hover::placeholder {
     color: ${ Color(THEME_COLOR.OCEAN).lighten(0.6).alpha(0.9).toString() };
   }
+`
+
+export const TaskSubsectionSelector = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0.8rem 1rem;
+  padding: 0.2rem;
+  font-weight: 300;
+  font-size: 0.875rem;
+  color: ${ SECONDARY_COLORS.ELEMENT.ACTIVE.DARK.hex() };
+  line-height: 1rem;
+  background-color: ${ SECONDARY_COLORS.WRAPPER.SOLID.DARK.lighten(0.4).alpha(0.5).toString() };
+  border: 1px solid ${ SECONDARY_COLORS.BORDER_COLOR.DARK(220).lighten(0.3).toString() };
+  border-radius: 5px;
+`
+
+export const TaskSubsectionOption = styled.div<{ selected: boolean }>`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 50%;
+  height: 100%;
+  padding: 0.6rem 0.3rem;
+  border-radius: 5px;
+  box-shadow: ${ props => props.selected ? `inset 10rem 3rem 12rem -10rem ${ THEME_COLOR.OCEAN }` : `inset 0rem 3rem 5rem -10rem ${ THEME_COLOR.OCEAN }` };
+  cursor: pointer;
+  transition: all 0.25s ease;
 `

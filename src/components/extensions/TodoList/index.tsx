@@ -63,10 +63,13 @@ import {
   DescriptionContainer,
   Description,
   OptionsSection,
-  TagsField
+  TagsField,
+  TaskSubsectionSelector,
+  TaskSubsectionOption
 } from './styles'
 import PriorityInput from '../../global/PriorityInput'
 import { PRIORITY_VALUES } from '../../global/PriorityInput/types'
+import { TASK_SUBSECTION } from './types'
 
 interface IInternalRouteHistoryObject {
   _id: string
@@ -107,6 +110,7 @@ const TodoList = ({ _id }: { _id: string }) => {
   })
   const [ taskIndexBeingDragged, setTaskIndexBeingDragged ] = useState<number | undefined>(undefined)
   const { value: taskDescription, bind: bindTaskDescription } = useInput('')
+  const [ currentTaskSubsectionSelected, setCurrentTaskSubsectionSelected ] = useState(TASK_SUBSECTION.SUBTASKS)
 
   // Functions:
   const handleOnBoardClick = useCallback(async (_id: string, icon: string, name: string) => {
@@ -343,8 +347,20 @@ const TodoList = ({ _id }: { _id: string }) => {
             <DescriptionContainer><Description placeholder='add a description..' { ...bindTaskDescription } /></DescriptionContainer>
             <OptionsSection>
               <TagsField type='text' placeholder='add #tags' />
-              <PriorityInput currentPriority={ PRIORITY_VALUES.NORMAL } />
+              <PriorityInput priority={ PRIORITY_VALUES.NORMAL } />
             </OptionsSection>
+            <TaskSubsectionSelector>
+              <TaskSubsectionOption
+                selected={ currentTaskSubsectionSelected === TASK_SUBSECTION.SUBTASKS }
+                style={{ marginRight: '0.1rem' }}
+                onClick={ () => setCurrentTaskSubsectionSelected(TASK_SUBSECTION.SUBTASKS) }
+              >subtasks</TaskSubsectionOption>
+              <TaskSubsectionOption
+                selected={ currentTaskSubsectionSelected === TASK_SUBSECTION.COMMENTS }
+                style={{ marginLeft: '0.1rem' }}
+                onClick={ () => setCurrentTaskSubsectionSelected(TASK_SUBSECTION.COMMENTS) }
+              >comments</TaskSubsectionOption>
+            </TaskSubsectionSelector>
           </TaskDetails>
         </LevelsArea>
       </MainArea>
