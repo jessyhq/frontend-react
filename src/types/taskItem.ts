@@ -10,7 +10,7 @@ export type TTask = {
   parentID: string
   priority?: number
   isDone: boolean
-  subTasks?: TSubTask[]
+  subTasks?: TSubtask[]
   tags?: string[]
   time: {
     createdAt: number
@@ -20,9 +20,10 @@ export type TTask = {
   title: string
 }
 
-export type TSubTask = {
+export type TSubtask = {
   _id: string
   isDone: boolean
+  taskID: string
   time: {
     createdAt: number
     lastEdited: number

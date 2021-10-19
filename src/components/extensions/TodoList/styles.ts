@@ -450,3 +450,5 @@ export const TaskSubsectionOption = styled.div<{ selected: boolean }>`
   cursor: pointer;
   transition: all 0.25s ease;
 `
+
+export const TaskSubsection = styled.div``

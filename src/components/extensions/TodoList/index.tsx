@@ -1,5 +1,5 @@
 // Packages:
-import React, { useRef, useState, useCallback, useEffect } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useInput } from '../../../hooks/use-input'
 import useOuterContextMenu from '../../../hooks/use-outer-context-menu'
@@ -13,8 +13,10 @@ import Lottie from 'react-lottie-player/dist/LottiePlayerLight'
 
 // Typescript:
 import { IReduxState } from '../../../redux/state/types'
-import { TTask } from '../../../types/taskItem'
+import { TSubtask, TTask } from '../../../types/taskItem'
+import { TASK_SUBSECTION } from './types'
 import { IObjectStoreExtensionTodoList } from '../../../indexedDB/types'
+import { PRIORITY_VALUES } from '../../global/PriorityInput/types'
 
 
 // Constants:
@@ -25,6 +27,8 @@ import { OBJECT_STORE, EXTENSION_TYPE } from '../../../constants/indexedDB/objec
 import WindowControls from '../../global/WindowControls'
 import TaskItem from '../../global/TaskItem'
 import FocusedTaskItem from '../../global/TaskItem/FocusedTaskItem'
+import PriorityInput from '../../global/PriorityInput'
+import SubtaskItem from '../../global/TaskItem/SubtaskItem'
 
 
 // Redux:
@@ -65,11 +69,10 @@ import {
   OptionsSection,
   TagsField,
   TaskSubsectionSelector,
-  TaskSubsectionOption
+  TaskSubsectionOption,
+  TaskSubsection
 } from './styles'
-import PriorityInput from '../../global/PriorityInput'
-import { PRIORITY_VALUES } from '../../global/PriorityInput/types'
-import { TASK_SUBSECTION } from './types'
+
 
 interface IInternalRouteHistoryObject {
   _id: string
@@ -91,26 +94,15 @@ const TodoList = ({ _id }: { _id: string }) => {
   // State:
   const localTodoListState = useSelector((state: IReduxState) => state.indexedDB.objectStores.extensions.todo_list[ _id ])
   const contextTarget = useSelector((state: IReduxState) => state.global.contextMenu.target)
-  const [ internalRouteHistory, setInternalRouteHistory ] = useState<IInternalRouteHistoryObject[]>([{
-    _id: 'projects',
-    icon: '✨',
-    name: 'projects'
-  }])
-  const [ showLevel, setShowLevel ] = useState({
-    PROJECTS: true,
-    BOARD: false,
-    TASK: false
-  })
   const [ hasLocalStateLoaded, setHasLocalStateLoaded ] = useState(false)
-  const [ isOn, setIsOn ] = useState(true)
+  const [ internalRouteHistory, setInternalRouteHistory ] = useState<IInternalRouteHistoryObject[]>([{ _id: 'projects', icon: '✨', name: 'projects' }])
+  const [ showLevel, setShowLevel ] = useState({ PROJECTS: true, BOARD: false, TASK: false })
   const [ tasks, setTasks ] = useState<TTask[]>([])
-  const [ tasksMetadata, setTasksMetadata ] = useState({
-    done: 0,
-    length: tasks.length
-  })
+  const [ tasksMetadata, setTasksMetadata ] = useState({ done: 0, length: tasks.length })
   const [ taskIndexBeingDragged, setTaskIndexBeingDragged ] = useState<number | undefined>(undefined)
   const { value: taskDescription, bind: bindTaskDescription } = useInput('')
   const [ currentTaskSubsectionSelected, setCurrentTaskSubsectionSelected ] = useState(TASK_SUBSECTION.SUBTASKS)
+  const [ subtasks, setSubtasks ] = useState<TSubtask[]>([])
 
   // Functions:
   const handleOnBoardClick = useCallback(async (_id: string, icon: string, name: string) => {
@@ -234,6 +226,12 @@ const TodoList = ({ _id }: { _id: string }) => {
     setShowLevel({ ...showLevel, TASK: true, BOARD: false })
   }, [ internalRouteHistory, showLevel ])
 
+  const updateSubtask = useCallback((subtaskID: string, newSubtask: Partial<TSubtask>) => {
+    const newSubtasks = subtasks, subtaskIndex = newSubtasks.findIndex(subtask => subtask._id === subtaskID)
+    newSubtasks[ subtaskIndex ] = { ...newSubtasks[ subtaskIndex ], ...newSubtask }
+    setSubtasks(newSubtasks)
+  }, [])
+
   // Effects:
   useEffect(() => {
     (async () => lottieJSON.current = await (await fetch('https://assets5.lottiefiles.com/packages/lf20_rovf9gzu.json')).json())()
@@ -241,7 +239,6 @@ const TodoList = ({ _id }: { _id: string }) => {
 
   useEffect(() => {
     if (localTodoListState && !hasLocalStateLoaded) {
-      setIsOn(localTodoListState.isOn)
       setTasks(localTodoListState.tasks)
       setTasksMetadata({
         done: localTodoListState.tasks.filter(task => task.isDone).length,
@@ -263,12 +260,12 @@ const TodoList = ({ _id }: { _id: string }) => {
         <TopBarTitle><span style={{ marginRight: '0.25rem' }}>{ internalRouteHistory[ internalRouteHistory.length - 1 ]?.icon }</span><span>{ internalRouteHistory[ internalRouteHistory.length - 1 ]?.name }</span> - <b>tasks</b></TopBarTitle>
         <WindowControls />
       </TopBar>
-      {/* <Lottie
+      <Lottie
         animationData={ lottieJSON.current }
         loop={ false }
         play
         style={{ position: 'absolute', zIndex: -1, width: '100%', height: '100%' }}
-      /> */}
+      />
       <MainArea className='draggableCancel'>
         <SearchBar>
           <SearchIcon />
@@ -361,6 +358,21 @@ const TodoList = ({ _id }: { _id: string }) => {
                 onClick={ () => setCurrentTaskSubsectionSelected(TASK_SUBSECTION.COMMENTS) }
               >comments</TaskSubsectionOption>
             </TaskSubsectionSelector>
+            <TaskSubsection>
+              <SubtaskItem
+                subtask={{
+                  _id: '12',
+                  isDone: false,
+                  taskID: '23',
+                  time: {
+                    createdAt: Date.now(),
+                    lastEdited: Date.now()
+                  },
+                  title: 'example subtask item'
+                }}
+                updateSubtask={ updateSubtask }
+              />
+            </TaskSubsection>
           </TaskDetails>
         </LevelsArea>
       </MainArea>
